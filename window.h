@@ -25,7 +25,6 @@
 #include <QTableWidget>
 #include <QHeaderView>
 #include <QMessageBox>
-#include <stdlib.h>     /* strtol */
 #include <QListWidget>
 #include <popupwindow.h>
 #include <QComboBox>
@@ -44,7 +43,6 @@ private:
     std::map<std::tuple<QString, bool>, float> m_listeCoursesNombre;
     PopUpWindow *m_popUp;
 
-
     QFrame* createFrame(std::vector<QString> listeLegumes, QWidget* tabLegumes, QFont font);
     void connectToQuantityButton(QList<QPushButton*> listButtons);
     std::vector<QString> readFile(std::string path);
@@ -58,8 +56,6 @@ public slots:
     void onToggled(bool checked);
     void removeItemFunction();
     void getQuantity();
-
-    void addIngredientDatabase(QLineEdit* echoLineEdit, QComboBox *echoComboBox);
 };
 
 #endif // WINDOW_H

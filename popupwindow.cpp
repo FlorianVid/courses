@@ -11,11 +11,8 @@ PopUpWindow::PopUpWindow(QWidget *parent, bool unitOrMass) :
     std::string unitorMassStr;
 
     if (unitOrMass)
-    {
         unitorMassStr = "en unité";
-    }
-    else
-    {
+    else {
         unitorMassStr = "masse (kg)";
     }
 
@@ -40,9 +37,7 @@ void PopUpWindow::setUnitOrMass(bool unitOrMass)
 
     std::string unitorMassStr;
     if (unitOrMass)
-    {
         unitorMassStr = "en unité";
-    }
     else
     {
         unitorMassStr = "masse (kg)";

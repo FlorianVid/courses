@@ -1,7 +1,5 @@
 #include "window.h"
 
-using namespace std;
-
 bool is_double(const std::string& s);
 bool is_integer(const std::string& s);
 
@@ -33,9 +31,9 @@ Window::Window(QWidget *parent) : QWidget(parent)
     groupBoxQuantity->setLayout(hbox);
     grid->addWidget(groupBoxQuantity, 0,0,1,2, Qt::AlignLeft);
 
-    vector<QString> listeLegumes = readFile("C:/Users/fvida/Documents/codeQt/courses/data/legumes.txt");
-    vector<QString> listeFruits = readFile("C:/Users/fvida/Documents/codeQt/courses/data/fruits.txt");
-    vector<QString> listeViandes = readFile("C:/Users/fvida/Documents/codeQt/courses/data/viandes.txt");
+    std::vector<QString> listeLegumes = readFile("C:/Users/fvida/Documents/codeQt/courses/data/legumes.txt");
+    std::vector<QString> listeFruits = readFile("C:/Users/fvida/Documents/codeQt/courses/data/fruits.txt");
+    std::vector<QString> listeViandes = readFile("C:/Users/fvida/Documents/codeQt/courses/data/viandes.txt");
 
     m_tabWidget = new QTabWidget(this);
     m_tabWidget->setFont(font);
@@ -55,34 +53,6 @@ Window::Window(QWidget *parent) : QWidget(parent)
     m_tabWidget->addTab(frameViandes,"Viandes");
 
     grid->addWidget(m_tabWidget, 1, 0);
-
-    QGroupBox *echoGroup = new QGroupBox();
-    QLabel *echoLabel = new QLabel(tr("Ajouter un nouvel ingrédient:"));
-    echoLabel->setFont(font);
-    QComboBox *echoComboBox = new QComboBox;
-    echoComboBox->setFont(font);
-    echoComboBox->addItem(tr("Légume"));
-    echoComboBox->addItem(tr("Fruit"));
-    echoComboBox->addItem(tr("Viande"));
-    QPushButton *addIngredientButton = new QPushButton;
-    addIngredientButton->setText("Valider");
-    addIngredientButton->setFont(font);
-
-    QLineEdit *echoLineEdit = new QLineEdit;
-    echoLineEdit->setPlaceholderText("Ingrédient");
-    echoLineEdit->setFocus();
-    echoLineEdit->setFont(font);
-
-    QVBoxLayout *vboxButtons = new QVBoxLayout;
-    vboxButtons->addWidget(echoLabel);
-    vboxButtons->addWidget(echoLineEdit);
-    vboxButtons->addWidget(echoComboBox);
-    vboxButtons->addWidget(addIngredientButton);
-    echoGroup->setLayout(vboxButtons);
-
-    grid->addWidget(echoGroup, 2, 0);
-    //connect(addIngredientButton, SIGNAL (clicked()), this, [this, echoLineEdit, echoComboBox]{addIngredientDatabase(echoLineEdit, echoComboBox); });
-
 
     m_listeCourses = new QTableWidget(10, 1, this);
     m_listeCourses->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -140,29 +110,22 @@ void Window::ajoutAliment()
     QPushButton *pushedButton = this->m_popUp->getIngredientButton();
     //cout << pushedButton->text().toLocal8Bit().constData() << endl;
 
-    string contentTextLine = this->m_popUp->getContentTextLine();
+    std::string contentTextLine = this->m_popUp->getContentTextLine();
     //cout << is_number(contentTextLine) << endl;
 
     bool formatOkToProceed = false;
     double quantity = 0;
 
-    if(m_unitOrMass)
-    {
-        if(is_integer(contentTextLine))
-        {
+    if(m_unitOrMass){
+        if(is_integer(contentTextLine)){
             formatOkToProceed = true;
         }
-    }
-    else
-    {
-        if(is_double(contentTextLine))
-        {
+    } else {
+        if (is_double(contentTextLine))
             formatOkToProceed = true;
-        }
     }
 
-    if(formatOkToProceed)
-    {
+    if(formatOkToProceed) {
         quantity = stod(contentTextLine);
         //cout << quantity << endl;
 
@@ -172,41 +135,32 @@ void Window::ajoutAliment()
         this->m_listeCourses->setRowCount(0);
         //QPushButton *pushedButton = (QPushButton *) sender();
         //QString newList = "";
-        if(m_unitOrMass)
-        {
-            tuple<QString, bool> temp2 = {pushedButton->text(), m_unitOrMass};
-            for (int i = 0; i< quantity; ++i)
-            {
+        if(m_unitOrMass) {
+            std::tuple<QString, bool> temp2 = {pushedButton->text(), m_unitOrMass};
+            for (int i = 0; i< quantity; ++i) {
                 ++m_listeCoursesNombre[temp2];
             }
-        }
-        else
-        {
-            tuple<QString, bool> temp2 = {pushedButton->text(), m_unitOrMass};
+        } else {
+            std::tuple<QString, bool> temp2 = {pushedButton->text(), m_unitOrMass};
             m_listeCoursesNombre[temp2] = m_listeCoursesNombre[temp2] + quantity;//0.05;
         }
 
         int row = 0;
-        for (auto const &j : m_listeCoursesNombre)
-        {
+        for (auto const &j : m_listeCoursesNombre) {
             QTableWidgetItem *itemList;
-            tuple<QString, bool> temp2 = j.first;
+            std::tuple<QString, bool> temp2 = j.first;
             QString listItem = std::get<0>(temp2);
             bool boolItem = std::get<1>(temp2);
-            istringstream record(listItem.toStdString());
-            string fullWord;
-            string word;
+            std::istringstream record(listItem.toStdString());
+            std::string fullWord;
+            std::string word;
             record >> word;
             if(j.second == 1 || word.back() == 's' || word.back() == 'z')
-            {
                 fullWord = word;
-            }
-            else
-            {
+            else {
                 fullWord = word + "s";
             }
-            while(record >> word)
-            {
+            while(record >> word) {
                 fullWord = fullWord + " " + word;
             }
             if (boolItem)
@@ -233,12 +187,11 @@ void Window::razListe()
     this->m_listeCourses->clear();//->setText(temp);
 }
 
-QFrame* Window::createFrame(vector<QString> listeLegumes, QWidget* tabLegumes, QFont font)
+QFrame* Window::createFrame(std::vector<QString> listeLegumes, QWidget* tabLegumes, QFont font)
 {
     int nbLegumes = listeLegumes.size();
     QPushButton* buttonLegumes[nbLegumes];
-    for (int i = 0 ; i < nbLegumes ; i++)
-    {
+    for (int i = 0 ; i < nbLegumes ; i++) {
         buttonLegumes[i] = new QPushButton(listeLegumes.at(i), tabLegumes);
         buttonLegumes[i]->setFont(font);
     }
@@ -246,8 +199,7 @@ QFrame* Window::createFrame(vector<QString> listeLegumes, QWidget* tabLegumes, Q
     QFrame *frameLegumes= new QFrame(this);
     //QVBoxLayout *layoutLegumes = new QVBoxLayout(tabLegumes);
     QGridLayout *layoutLegumes = new QGridLayout(tabLegumes);//3 items per row
-    for (int i = 0 ; i < nbLegumes ; i++)
-    {
+    for (int i = 0 ; i < nbLegumes ; i++) {
         layoutLegumes->addWidget(buttonLegumes[i], i/3, i%3);
     }
     frameLegumes->setLayout(layoutLegumes);
@@ -255,15 +207,14 @@ QFrame* Window::createFrame(vector<QString> listeLegumes, QWidget* tabLegumes, Q
     return frameLegumes;
 }
 
-vector<QString> Window::readFile(string path)
+std::vector<QString> Window::readFile(std::string path)
 {
-    vector<QString> listeLegumes;
-    ifstream dataFile(path);
+    std::vector<QString> listeLegumes;
+    std::ifstream dataFile(path);
     if(!dataFile)
-        cerr << "No data ?" << endl;
-    string line;
-    while (getline(dataFile, line))
-    {
+        std::cerr << "No data ?" << std::endl;
+    std::string line;
+    while (getline(dataFile, line)) {
         listeLegumes.push_back(QString::fromStdString(line));
     }
     dataFile.close();
@@ -272,7 +223,9 @@ vector<QString> Window::readFile(string path)
 
 void Window::saveToFile()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Enregistrer la liste de courses"), "",
+    QString fileName = QFileDialog::getSaveFileName(this,
+                                                    tr("Enregistrer la liste de courses"),
+                                                    "",
                                                     tr("fichier texte (*.txt);;All Files (*)"));
     //open file
     if (fileName.isEmpty())
@@ -287,9 +240,8 @@ void Window::saveToFile()
 
         QTextStream out(&file);// bug d'affichage dans le txt avec QDataStream
 
-        for (auto const &j : m_listeCoursesNombre)
-        {
-            tuple<QString, bool> temp2 = j.first;
+        for (auto const &j : m_listeCoursesNombre) {
+            std::tuple<QString, bool> temp2 = j.first;
             QString listItem = std::get<0>(temp2);
 
             if (!std::get<1>(temp2))
@@ -304,7 +256,6 @@ void Window::saveToFile()
             else
                 out << (QString::number(j.second) + " " + listItem + "\n");
             }
-
         }
     }
 }
@@ -330,7 +281,6 @@ QGroupBox *Window::createExclusiveGroup(QFont font)
     groupBox->setLayout(hbox);
 
     return groupBox;
-
 }
 
 void Window::onToggled(bool checked)
@@ -339,9 +289,7 @@ void Window::onToggled(bool checked)
         //btn is Checked
         QRadioButton *btn = static_cast<QRadioButton *>(sender());
         if(btn->text() == "Masse (kg)")
-        {
             m_unitOrMass = false;
-        }
         else
         {
             m_unitOrMass = true;
@@ -352,20 +300,17 @@ void Window::onToggled(bool checked)
 
 void Window::removeItemFunction()
 {
-    if (m_listeCourses->currentIndex().isValid())
-    {
+    if (m_listeCourses->currentIndex().isValid()) {
         int curRow = m_listeCourses->currentRow();
         QTableWidgetItem *curItem = m_listeCourses->currentItem();
         QStringList listWords = curItem->text().split(" ");
         QString lastWord = listWords.last();
         std::string curItemStdStr = curItem->text().toLocal8Bit().constData();
 
-        std::map<tuple<QString, bool>,float>::iterator it;
-        for (it=m_listeCoursesNombre.begin(); it!=m_listeCoursesNombre.end(); ++it)
-        {
-            if(!lastWord.compare(std::get<0>(it->first)))
-            {
-                cout << "erase" <<endl;
+        std::map<std::tuple<QString, bool>,float>::iterator it;
+        for (it=m_listeCoursesNombre.begin(); it!=m_listeCoursesNombre.end(); ++it) {
+            if(!lastWord.compare(std::get<0>(it->first))) {
+                std::cout << "erase" << std::endl;
                 m_listeCoursesNombre.erase(it);
             }
         }
@@ -383,15 +328,9 @@ void Window::getQuantity()
 
 void Window::connectToQuantityButton(QList<QPushButton*> listButtons)
 {
-    for (const auto &button : listButtons )
-    {
+    for (const auto &button : listButtons ) {
         connect(button, SIGNAL (clicked()), this, SLOT (getQuantity()));//getQuantity
     }
-}
-
-void Window::addIngredientDatabase(QLineEdit* echoLineEdit, QComboBox *echoComboBox)
-{
-    cout << echoLineEdit->text().toLocal8Bit().constData() << endl;
 }
 
 bool is_double(const std::string& s)
