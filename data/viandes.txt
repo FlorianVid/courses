@@ -1,0 +1,5 @@
+Poulet
+Poisson
+Boeuf
+Oeuf
+Jambon
