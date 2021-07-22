@@ -10,6 +10,7 @@ Window::Window(QWidget *parent) : QWidget(parent)
     this->setWindowTitle(m_nameWindow);
     // Set size of the window
     m_unitOrMass = true;
+    m_unitOrMassTemp = true;
 
     setFixedSize(1500, 700);
     QFont m_font("Times", 15);
@@ -77,10 +78,15 @@ Window::Window(QWidget *parent) : QWidget(parent)
     removeItem->setFont(m_font);
     //removeItem->setGeometry(600, 510, 350, 40);
 
+    QPushButton* modifyItem = new QPushButton(this);
+    modifyItem->setText("Modifier la quantité de l'aliment");
+    modifyItem->setFont(m_font);
+
     QVBoxLayout *vbox = new QVBoxLayout;
     vbox->addWidget(m_listeCourses);
     vbox->addWidget(saveListe);
     vbox->addWidget(removeItem);
+    vbox->addWidget(modifyItem);
     vbox->addWidget(razListe);
 
     QGroupBox *groupBox = new QGroupBox(this);
@@ -97,12 +103,58 @@ Window::Window(QWidget *parent) : QWidget(parent)
     connectToQuantityButton(buttonFruits);
     connectToQuantityButton(buttonViandes);
 
-    connect(razListe, SIGNAL (clicked()), this, SLOT (razListe()));//razListe
+    connect(razListe, SIGNAL (clicked()), this, SLOT (razListe()));
     connect(saveListe, SIGNAL (clicked()), this, SLOT (saveToFile()));
     connect(removeItem, SIGNAL (clicked()), this, SLOT (removeItemFunction()));
+    connect(modifyItem, SIGNAL (clicked()), this, SLOT (modifyItemFunction()));
 }
 
-void Window::ajoutAliment(double quantity)
+void Window::ajoutAlimentAbsolu(double quantity)
+{
+    QInputDialog * popUp = (QInputDialog *) sender();
+
+    QString foodName = popUp->textValue();
+
+    this->m_listeCourses->clear();
+    this->m_listeCourses->setRowCount(0);
+
+    if(m_unitOrMass) {
+        std::tuple<QString, bool> temp2 = {foodName, m_unitOrMass};
+        m_listeCoursesNombre[temp2] = quantity;
+    } else {
+        std::tuple<QString, bool> temp2 = {foodName, m_unitOrMass};
+        m_listeCoursesNombre[temp2] = quantity;
+    }
+    int row = 0;
+    for (auto const &j : m_listeCoursesNombre) {
+        QTableWidgetItem *itemList;
+        std::tuple<QString, bool> temp2 = j.first;
+        QString listItem = std::get<0>(temp2);
+        bool boolItem = std::get<1>(temp2);
+        std::istringstream record(listItem.toStdString());
+        std::string fullWord;
+        std::string word;
+        record >> word;
+        if(j.second <= 1 || word.back() == 's' || word.back() == 'z')
+            fullWord = word;
+        else {
+            fullWord = word + "s";
+        }
+        while(record >> word) {
+            fullWord = fullWord + " " + word;
+        }
+        if (boolItem)
+            itemList = new QTableWidgetItem(QString::number(j.second) + " " + QString::fromStdString(fullWord));
+        else
+            itemList = new QTableWidgetItem(QString::number(j.second) + " kg " + QString::fromStdString(fullWord));
+
+        this->m_listeCourses->insertRow(row);
+        this->m_listeCourses->setItem(row,0,itemList);
+    }
+    m_unitOrMass = m_unitOrMassTemp;
+}
+
+void Window::ajoutAlimentRelatif(double quantity)
 {
     QInputDialog * popUp = (QInputDialog *) sender();
 
@@ -132,7 +184,7 @@ void Window::ajoutAliment(double quantity)
         std::string fullWord;
         std::string word;
         record >> word;
-        if(j.second == 1 || word.back() == 's' || word.back() == 'z')
+        if(j.second <= 1 || word.back() == 's' || word.back() == 'z')
             fullWord = word;
         else {
             fullWord = word + "s";
@@ -148,6 +200,7 @@ void Window::ajoutAliment(double quantity)
         this->m_listeCourses->insertRow(row);
         this->m_listeCourses->setItem(row,0,itemList);
     }
+    m_unitOrMass = m_unitOrMassTemp;
 }
 
 void Window::razListe()
@@ -177,7 +230,7 @@ QFrame* Window::createFrame(std::vector<QString> listeLegumes, QWidget* tabLegum
     return frameLegumes;
 }
 
-std::vector<QString> Window::readFile(std::string path)
+std::vector<QString> Window::readFile(std::string path) const
 {
     std::vector<QString> listeLegumes;
     std::ifstream dataFile(path);
@@ -260,16 +313,17 @@ void Window::onToggled(bool checked)
     if(checked){
         //btn is Checked
         QRadioButton *btn = static_cast<QRadioButton *>(sender());
-        if(btn->text() == "Masse (kg)")
+        if(btn->text() == "Masse (kg)") {
             m_unitOrMass = false;
-        else
-        {
+            m_unitOrMassTemp = false;
+        } else {
             m_unitOrMass = true;
+            m_unitOrMassTemp = true;
         }
     }
 }
 
-void Window::removeItemFunction()
+void Window::removeItemFunction(bool quietRemove)
 {
     if (m_listeCourses->currentIndex().isValid()) {
         int curRow = m_listeCourses->currentRow();
@@ -285,17 +339,72 @@ void Window::removeItemFunction()
             if((lastWord == std::get<0>(it)) ||
                (lastWord==(std::get<0>(it) + QString("s")))||
                (lastWord == (std::get<0>(it) + QString("z")))) {
-                QMessageBox popUp = QMessageBox(QMessageBox::Information,m_nameWindow,"Ingrédient : " + lastWord + " enlevé de la liste");
-                popUp.setFont(m_font);
-                popUp.exec();
-                m_listeCoursesNombre.erase(it);
+                if (quietRemove == false) {
+                    QMessageBox popUp = QMessageBox(QMessageBox::Information,m_nameWindow,"Ingrédient : " + lastWord + " enlevé de la liste");
+                    popUp.setFont(m_font);
+                    popUp.exec();
+                } else {
+                    m_listeCoursesNombre.erase(it);
+                }
             }
         }
         m_listeCourses->removeRow(curRow);
     }
 }
 
-void Window::getQuantity()
+std::tuple<QString, bool, double> Window::findItemToModify() const
+{
+    if (m_listeCourses->currentIndex().isValid()) {
+        QTableWidgetItem *curItem = m_listeCourses->currentItem();
+        QStringList listWords = curItem->text().split(" ");
+        QString lastWord = listWords.last();
+
+        std::vector<std::tuple<QString, bool>> listKeys;
+        for(auto const & it : m_listeCoursesNombre) {
+            listKeys.push_back(it.first);
+        }
+        for (auto const & it : listKeys) {
+            if((lastWord == std::get<0>(it)) ||
+               (lastWord==(std::get<0>(it) + QString("s")))||
+               (lastWord == (std::get<0>(it) + QString("z")))) {
+                double nbFood = m_listeCoursesNombre.at(it);
+                return (std::make_tuple(std::get<0>(it), std::get<1>(it), nbFood));
+            }
+        }
+    }
+    std::cerr << "Element to modify not found" << std::endl;
+}
+
+void Window::modifyItemFunction()
+{
+    if (m_listeCourses->currentIndex().isValid()) {
+
+        std::tuple<QString, bool, double> data2modify = findItemToModify();
+
+        std::string qstion = "";
+        if (std::get<1>(data2modify) == true)
+            qstion = "Voulez-vous rester en unité ?";
+        else {
+            qstion = "Voulez-vous rester en kg ?";
+        }
+
+        QMessageBox::StandardButton reply = QMessageBox::question(this, tr("Modifier la quantité de l'aliment"), tr(qstion.c_str()) ,
+                                        QMessageBox::Yes|QMessageBox::No);
+
+        if (reply == QMessageBox::No) {
+            m_unitOrMass = !std::get<1>(data2modify);
+            removeItemFunction(true);
+        } else {
+            m_unitOrMass = std::get<1>(data2modify);
+        }
+
+        double initValue = std::get<2>(data2modify);
+
+        getQuantity(std::get<0>(data2modify).toStdString(), initValue);
+    }
+}
+
+void Window::getQuantity(std::string chosenFood, double initValue)
 {
     QPushButton * pushedButton = (QPushButton *) sender();
 
@@ -306,7 +415,8 @@ void Window::getQuantity()
         stringUnitMass = " en masse (kg)";
     }
 
-    std::string chosenFood = pushedButton->text().toStdString();
+    if(chosenFood == "")
+        chosenFood = pushedButton->text().toStdString();
     wchar_t firstChar = chosenFood[0];
     firstChar = ::tolower(firstChar);
     chosenFood[0] = firstChar;
@@ -318,17 +428,20 @@ void Window::getQuantity()
     }
     const char* c_addedFood = addedFood.c_str();
 
-    //std::string labelPopUp = "Ajout l'ingrédient " + ;
-    //const char* clabelPopUp = labelPopUp.c_str();
-
     QInputDialog *popUp = new QInputDialog;
     popUp->setFont(m_font);
     popUp->setInputMode(QInputDialog::DoubleInput);
-    connect(popUp, &QInputDialog::doubleValueSelected, this, &Window::ajoutAliment);
+
+    if (initValue > 0) //no initial value
+        connect(popUp, &QInputDialog::doubleValueSelected, this, &Window::ajoutAlimentAbsolu);
+    else {
+        connect(popUp, &QInputDialog::doubleValueSelected, this, &Window::ajoutAlimentRelatif);
+    }
+
 
     bool ok;
     double quantity = popUp->getDouble(this, tr("Ajout d'aliment"),
-                                         tr(c_addedFood), QLineEdit::Normal,
+                                         tr(c_addedFood), initValue,
                                          0,100,1,&ok,Qt::WindowFlags(),0.1);
 
     popUp->setTextValue(QString(tr(chosenFood.c_str())));
