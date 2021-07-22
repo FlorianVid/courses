@@ -26,14 +26,12 @@
 #include <QGroupBox>
 #include <QGridLayout>
 #include <QComboBox>
-//other
-#include <popupwindow.h>
 //other Qt
 #include <QApplication>
 #include <QTextStream>
 #include <QFileDialog>
 #include <QHeaderView>
-#include <QDialog>
+#include <QInputDialog>
 #include <QDebug>
 
 class Window : public QWidget
@@ -49,7 +47,6 @@ private:
     QTableWidget *m_listeCourses;
     QTabWidget *m_tabWidget;
     std::map<std::tuple<QString, bool>, float> m_listeCoursesNombre;
-    PopUpWindow *m_popUp;
 
     QFrame* createFrame(std::vector<QString> listeLegumes, QWidget* tabLegumes);
     void connectToQuantityButton(QList<QPushButton*> listButtons);
@@ -58,7 +55,7 @@ private:
 signals:
 
 private slots:
-    void ajoutAliment();
+    void ajoutAliment(double qstr);
     void razListe();
     void saveToFile();
     void onToggled(bool checked);

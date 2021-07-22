@@ -2,6 +2,7 @@
 
 bool is_double(const std::string& s);
 bool is_integer(const std::string& s);
+bool is_vowel (wchar_t c);
 
 Window::Window(QWidget *parent) : QWidget(parent)
 {
@@ -10,19 +11,17 @@ Window::Window(QWidget *parent) : QWidget(parent)
     // Set size of the window
     m_unitOrMass = true;
 
-    m_popUp = new PopUpWindow(nullptr, m_unitOrMass);
-
     setFixedSize(1500, 700);
     QFont m_font("Times", 15);
 
-    //mode: either mass or units
-
+    //global layout
     QGridLayout *grid = new QGridLayout;
 
     QHBoxLayout *hbox = new QHBoxLayout;
     QLabel *entete = new QLabel(tr("Comment donner la quantité ?"),this);
     entete->setFont(m_font);
 
+    //mode: either mass or units
     QGroupBox *radioButtonUnitMass= createExclusiveGroup();
     //grid->addWidget(radioButtonUnitMass, 0, 1);
 
@@ -101,84 +100,54 @@ Window::Window(QWidget *parent) : QWidget(parent)
     connect(razListe, SIGNAL (clicked()), this, SLOT (razListe()));//razListe
     connect(saveListe, SIGNAL (clicked()), this, SLOT (saveToFile()));
     connect(removeItem, SIGNAL (clicked()), this, SLOT (removeItemFunction()));
-
-    QPushButton* confirmationButton = m_popUp->findChild<QPushButton*>("ConfirmationButton");
-    connect(confirmationButton, SIGNAL (clicked()), this, SLOT (ajoutAliment()));
 }
 
-void Window::ajoutAliment()
+void Window::ajoutAliment(double quantity)
 {
-    QPushButton *pushedButton = this->m_popUp->getIngredientButton();
-    //cout << pushedButton->text().toLocal8Bit().constData() << endl;
+    QInputDialog * popUp = (QInputDialog *) sender();
 
-    std::string contentTextLine = this->m_popUp->getContentTextLine();
-    //cout << is_number(contentTextLine) << endl;
+    QString foodName = popUp->textValue();
 
-    bool formatOkToProceed = false;
-    double quantity = 0;
+    std::cout << quantity << " " << foodName.toStdString() << std::endl;
 
-    if(m_unitOrMass){
-        if(is_integer(contentTextLine)){
-            formatOkToProceed = true;
+    this->m_listeCourses->clear();
+    this->m_listeCourses->setRowCount(0);
+
+    if(m_unitOrMass) {
+        std::tuple<QString, bool> temp2 = {foodName, m_unitOrMass};
+        for (int i = 0; i< quantity; ++i) {
+            ++m_listeCoursesNombre[temp2];
         }
     } else {
-        if (is_double(contentTextLine))
-            formatOkToProceed = true;
+        std::tuple<QString, bool> temp2 = {foodName, m_unitOrMass};
+        m_listeCoursesNombre[temp2] = m_listeCoursesNombre[temp2] + quantity;//0.05;
     }
-
-    if(formatOkToProceed) {
-        quantity = stod(contentTextLine);
-        //cout << quantity << endl;
-
-        this->m_popUp->hide();
-
-        this->m_listeCourses->clear();
-        this->m_listeCourses->setRowCount(0);
-        //QPushButton *pushedButton = (QPushButton *) sender();
-        //QString newList = "";
-        if(m_unitOrMass) {
-            std::tuple<QString, bool> temp2 = {pushedButton->text(), m_unitOrMass};
-            for (int i = 0; i< quantity; ++i) {
-                ++m_listeCoursesNombre[temp2];
-            }
-        } else {
-            std::tuple<QString, bool> temp2 = {pushedButton->text(), m_unitOrMass};
-            m_listeCoursesNombre[temp2] = m_listeCoursesNombre[temp2] + quantity;//0.05;
+    int row = 0;
+    for (auto const &j : m_listeCoursesNombre) {
+        QTableWidgetItem *itemList;
+        std::tuple<QString, bool> temp2 = j.first;
+        QString listItem = std::get<0>(temp2);
+        bool boolItem = std::get<1>(temp2);
+        std::istringstream record(listItem.toStdString());
+        std::string fullWord;
+        std::string word;
+        record >> word;
+        if(j.second == 1 || word.back() == 's' || word.back() == 'z')
+            fullWord = word;
+        else {
+            fullWord = word + "s";
         }
-
-        int row = 0;
-        for (auto const &j : m_listeCoursesNombre) {
-            QTableWidgetItem *itemList;
-            std::tuple<QString, bool> temp2 = j.first;
-            QString listItem = std::get<0>(temp2);
-            bool boolItem = std::get<1>(temp2);
-            std::istringstream record(listItem.toStdString());
-            std::string fullWord;
-            std::string word;
-            record >> word;
-            if(j.second == 1 || word.back() == 's' || word.back() == 'z')
-                fullWord = word;
-            else {
-                fullWord = word + "s";
-            }
-            while(record >> word) {
-                fullWord = fullWord + " " + word;
-            }
-            if (boolItem)
-                itemList = new QTableWidgetItem(QString::number(j.second) + " " + QString::fromStdString(fullWord));
-                //newList.append(QString::number(j.second) + " " + QString::fromStdString(fullWord) + "\n");
-            else
-                itemList = new QTableWidgetItem(QString::number(j.second) + " kg " + QString::fromStdString(fullWord));
-                //newList.append(QString::number(j.second) + " kg " + QString::fromStdString(fullWord) + "\n");
-
-            this->m_listeCourses->insertRow(row);
-            this->m_listeCourses->setItem(row,0,itemList);
+        while(record >> word) {
+            fullWord = fullWord + " " + word;
         }
-        //this->m_listeCourses->setText(newList);
-        //++row;
+        if (boolItem)
+            itemList = new QTableWidgetItem(QString::number(j.second) + " " + QString::fromStdString(fullWord));
+        else
+            itemList = new QTableWidgetItem(QString::number(j.second) + " kg " + QString::fromStdString(fullWord));
+
+        this->m_listeCourses->insertRow(row);
+        this->m_listeCourses->setItem(row,0,itemList);
     }
-
-    //m_popUp->close();
 }
 
 void Window::razListe()
@@ -268,9 +237,11 @@ QGroupBox *Window::createExclusiveGroup()
     groupBox->setGeometry(10, 10, 350, 40);
 
     QRadioButton *radio2 = new QRadioButton(tr("Masse (kg)"));
+    radio2->setFont(m_font);
     connect(radio2, &QRadioButton::toggled, this, &Window::onToggled);
     QRadioButton *radio1 = new QRadioButton(tr("Unité"));
     connect(radio1, &QRadioButton::toggled, this, &Window::onToggled);
+    radio1->setFont(m_font);
 
     radio1->setChecked(true);
 
@@ -295,7 +266,6 @@ void Window::onToggled(bool checked)
         {
             m_unitOrMass = true;
         }
-        m_popUp->setUnitOrMass(m_unitOrMass);
     }
 }
 
@@ -328,9 +298,42 @@ void Window::removeItemFunction()
 void Window::getQuantity()
 {
     QPushButton * pushedButton = (QPushButton *) sender();
-    m_popUp->setIngredientButton(pushedButton);
-    m_popUp->show();
-    m_popUp->setUnitOrMass(m_unitOrMass);
+
+    const char* stringUnitMass;
+    if (m_unitOrMass)
+        stringUnitMass = " en unité";
+    else {
+        stringUnitMass = " en masse (kg)";
+    }
+
+    std::string chosenFood = pushedButton->text().toStdString();
+    wchar_t firstChar = chosenFood[0];
+    firstChar = ::tolower(firstChar);
+    chosenFood[0] = firstChar;
+    std::string addedFood;
+    if (is_vowel(firstChar))
+        addedFood = "Quantité sélectionnée d'" + chosenFood + stringUnitMass;
+    else {
+        addedFood = "Quantité sélectionnée de " + chosenFood + stringUnitMass;
+    }
+    const char* c_addedFood = addedFood.c_str();
+
+    //std::string labelPopUp = "Ajout l'ingrédient " + ;
+    //const char* clabelPopUp = labelPopUp.c_str();
+
+    QInputDialog *popUp = new QInputDialog;
+    popUp->setFont(m_font);
+    popUp->setInputMode(QInputDialog::DoubleInput);
+    connect(popUp, &QInputDialog::doubleValueSelected, this, &Window::ajoutAliment);
+
+    bool ok;
+    double quantity = popUp->getDouble(this, tr("Ajout d'aliment"),
+                                         tr(c_addedFood), QLineEdit::Normal,
+                                         0,100,1,&ok,Qt::WindowFlags(),0.1);
+
+    popUp->setTextValue(QString(tr(chosenFood.c_str())));
+    emit popUp->doubleValueSelected(quantity);
+
 }
 
 void Window::connectToQuantityButton(QList<QPushButton*> listButtons)
@@ -351,3 +354,12 @@ bool is_integer(const std::string& s)
     return !s.empty() && std::find_if(s.begin(),
         s.end(), [](unsigned char c) { return !( (std::isdigit(c)) ); }) == s.end();
 }
+
+bool is_vowel (wchar_t c)
+{
+    wchar_t vowel[] = {'a','e',L'é',L'è','u','i','o','y',L'à','h'};
+    wchar_t* end = vowel + sizeof(vowel) / sizeof(vowel[0]);
+    wchar_t* position = std::find(vowel, end, c);
+
+    return (position != end);
+ }
