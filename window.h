@@ -42,11 +42,10 @@ public:
 
 private:
     QString m_nameWindow;
-    QFont m_font;
+    QFont m_basicFont;
     bool m_unitOrMass;//if true => unit otherwise mass in kg
     bool m_unitOrMassTemp;//if true => unit otherwise mass in kg
     QTableWidget *m_listeCourses;
-    QTabWidget *m_tabWidget;
     std::map<std::tuple<QString, bool>, double> m_listeCoursesNombre;
 
     QFrame* createFrame(std::vector<QString> listeLegumes, QWidget* tabLegumes);

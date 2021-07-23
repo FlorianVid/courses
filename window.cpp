@@ -13,14 +13,14 @@ Window::Window(QWidget *parent) : QWidget(parent)
     m_unitOrMassTemp = true;
 
     setFixedSize(1500, 700);
-    QFont m_font("Times", 15);
+    QFont m_basicFont("Times", 15);
 
     //global layout
     QGridLayout *grid = new QGridLayout;
 
     QHBoxLayout *hbox = new QHBoxLayout;
     QLabel *entete = new QLabel(tr("Comment donner la quantité ?"),this);
-    entete->setFont(m_font);
+    entete->setFont(m_basicFont);
 
     //mode: either mass or units
     QGroupBox *radioButtonUnitMass= createExclusiveGroup();
@@ -36,9 +36,9 @@ Window::Window(QWidget *parent) : QWidget(parent)
     std::vector<QString> listeFruits = readFile("C:/Users/fvida/Documents/codeQt/courses/data/fruits.txt");
     std::vector<QString> listeViandes = readFile("C:/Users/fvida/Documents/codeQt/courses/data/viandes.txt");
 
-    m_tabWidget = new QTabWidget(this);
-    m_tabWidget->setFont(m_font);
-    m_tabWidget->setGeometry(10, 100, 560, 450);
+    QTabWidget *tabWidget = new QTabWidget(this);
+    tabWidget->setFont(m_basicFont);
+    tabWidget->setGeometry(10, 100, 560, 450);
 
     QWidget *tabLegumes = new QWidget();
     QWidget *tabFruits = new QWidget();
@@ -49,11 +49,11 @@ Window::Window(QWidget *parent) : QWidget(parent)
     QFrame* frameFruits = createFrame(listeFruits, tabFruits);
     QFrame* frameViandes = createFrame(listeViandes, tabViandes);
 
-    m_tabWidget->addTab(frameLegumes,"Légumes");
-    m_tabWidget->addTab(frameFruits,"Fruits");
-    m_tabWidget->addTab(frameViandes,"Viandes");
+    tabWidget->addTab(frameLegumes,"Légumes");
+    tabWidget->addTab(frameFruits,"Fruits");
+    tabWidget->addTab(frameViandes,"Viandes");
 
-    grid->addWidget(m_tabWidget, 1, 0);
+    grid->addWidget(tabWidget, 1, 0);
 
     m_listeCourses = new QTableWidget(10, 1, this);
     m_listeCourses->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -61,26 +61,32 @@ Window::Window(QWidget *parent) : QWidget(parent)
     m_listeCourses->horizontalHeader()->setVisible(false);
     m_listeCourses->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
-    m_listeCourses->setFont(m_font);
+    m_listeCourses->setFont(m_basicFont);
 
     QPushButton* saveListe = new QPushButton(this);
     saveListe->setText("Enregistrer la liste des courses");
-    saveListe->setFont(m_font);
+    saveListe->setFont(m_basicFont);
     //saveListe->setGeometry(600, 450, 350, 40);
 
     QPushButton* razListe = new QPushButton(this);
     razListe->setText("RAZ de la liste des courses");
-    razListe->setFont(m_font);
+    razListe->setFont(m_basicFont);
     //razListe->setGeometry(600, 510, 350, 40);
 
     QPushButton* removeItem = new QPushButton(this);
     removeItem->setText("Enlever l'ingrédient");
-    removeItem->setFont(m_font);
+    removeItem->setFont(m_basicFont);
     //removeItem->setGeometry(600, 510, 350, 40);
 
     QPushButton* modifyItem = new QPushButton(this);
     modifyItem->setText("Modifier la quantité de l'aliment");
-    modifyItem->setFont(m_font);
+    modifyItem->setFont(m_basicFont);
+
+    QPushButton* validerCourses = new QPushButton(this);
+    validerCourses->setText("Valider les courses");
+    validerCourses->setFont(m_basicFont);
+    validerCourses->setStyleSheet("background-color: #ADFF2F;");
+
 
     QVBoxLayout *vbox = new QVBoxLayout;
     vbox->addWidget(m_listeCourses);
@@ -88,6 +94,7 @@ Window::Window(QWidget *parent) : QWidget(parent)
     vbox->addWidget(removeItem);
     vbox->addWidget(modifyItem);
     vbox->addWidget(razListe);
+    vbox->addWidget(validerCourses);
 
     QGroupBox *groupBox = new QGroupBox(this);
     groupBox->setLayout(vbox);
@@ -216,7 +223,7 @@ QFrame* Window::createFrame(std::vector<QString> listeLegumes, QWidget* tabLegum
     QPushButton* buttonLegumes[nbLegumes];
     for (int i = 0 ; i < nbLegumes ; i++) {
         buttonLegumes[i] = new QPushButton(listeLegumes.at(i), tabLegumes);
-        buttonLegumes[i]->setFont(m_font);
+        buttonLegumes[i]->setFont(m_basicFont);
     }
 
     QFrame *frameLegumes= new QFrame(this);
@@ -286,15 +293,15 @@ void Window::saveToFile()
 QGroupBox *Window::createExclusiveGroup()
 {
     QGroupBox *groupBox = new QGroupBox(this);
-    groupBox -> setFont(m_font);
+    groupBox -> setFont(m_basicFont);
     groupBox->setGeometry(10, 10, 350, 40);
 
     QRadioButton *radio2 = new QRadioButton(tr("Masse (kg)"));
-    radio2->setFont(m_font);
+    radio2->setFont(m_basicFont);
     connect(radio2, &QRadioButton::toggled, this, &Window::onToggled);
     QRadioButton *radio1 = new QRadioButton(tr("Unité"));
     connect(radio1, &QRadioButton::toggled, this, &Window::onToggled);
-    radio1->setFont(m_font);
+    radio1->setFont(m_basicFont);
 
     radio1->setChecked(true);
 
@@ -341,7 +348,7 @@ void Window::removeItemFunction(bool quietRemove)
                (lastWord == (std::get<0>(it) + QString("z")))) {
                 if (quietRemove == false) {
                     QMessageBox popUp = QMessageBox(QMessageBox::Information,m_nameWindow,"Ingrédient : " + lastWord + " enlevé de la liste");
-                    popUp.setFont(m_font);
+                    popUp.setFont(m_basicFont);
                     popUp.exec();
                 } else {
                     m_listeCoursesNombre.erase(it);
@@ -429,7 +436,7 @@ void Window::getQuantity(std::string chosenFood, double initValue)
     const char* c_addedFood = addedFood.c_str();
 
     QInputDialog *popUp = new QInputDialog;
-    popUp->setFont(m_font);
+    popUp->setFont(m_basicFont);
     popUp->setInputMode(QInputDialog::DoubleInput);
 
     if (initValue > 0) //no initial value

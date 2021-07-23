@@ -1,9 +1,9 @@
 TEMPLATE = app TARGET = course
 
-QT = core gui
+QT += core gui charts
 CONFIG += c++14
 
-QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 SOURCES += \
     main.cpp \
@@ -11,3 +11,5 @@ SOURCES += \
 
 HEADERS += \
     window.h
+
+
