@@ -25,6 +25,11 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tableListeCourses->horizontalHeader()->setVisible(false);
     ui->tableListeCourses->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
+    ui->tableListeCourses_2->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->tableListeCourses_2->verticalHeader()->setVisible(false);
+    ui->tableListeCourses_2->horizontalHeader()->setVisible(false);
+    ui->tableListeCourses_2->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
     ui->buttonUnit->setChecked(true);
     connect(ui->buttonMasse, &QRadioButton::toggled, this, &MainWindow::switchMassUnit);
     connect(ui->buttonUnit, &QRadioButton::toggled, this, &MainWindow::switchMassUnit);
@@ -201,34 +206,7 @@ void MainWindow::ajoutAlimentAbsolu(double quantity)
     std::tuple<QString, bool> temp2 = {foodName, m_unitOrMass};
     m_listeCoursesNombre[temp2] = quantity;
 
-    int row = 0;
-    for (auto const &j : m_listeCoursesNombre) {
-        if (j.second < 0.001)
-            continue;
-        QTableWidgetItem *itemList;
-        std::tuple<QString, bool> temp2 = j.first;
-        QString listItem = std::get<0>(temp2);
-        bool boolItem = std::get<1>(temp2);
-        std::istringstream record(listItem.toStdString());
-        std::string fullWord;
-        std::string word;
-        record >> word;
-        if(j.second <= 1 || word.back() == 's' || word.back() == 'z')
-            fullWord = word;
-        else {
-            fullWord = word + "s";
-        }
-        while(record >> word) {
-            fullWord = fullWord + " " + word;
-        }
-        if (boolItem)
-            itemList = new QTableWidgetItem(QString::number(j.second) + " " + QString::fromStdString(fullWord));
-        else
-            itemList = new QTableWidgetItem(QString::number(j.second) + " kg " + QString::fromStdString(fullWord));
-
-        ui->tableListeCourses->insertRow(row);
-        ui->tableListeCourses->setItem(row,0,itemList);
-    }
+    updateListeCourses(ui->tableListeCourses);
     m_unitOrMass = m_unitOrMassTemp;
 }
 
@@ -239,43 +217,15 @@ void MainWindow::ajoutAlimentRelatif(double quantity)
     QString foodName = popUp->textValue();
 
     ui->tableListeCourses->clear();
-    unsigned int nbFood = m_listeCoursesNombre.size();
+    //unsigned int nbFood = m_listeCoursesNombre.size();
 
-    ui->tableListeCourses->setRowCount(nbFood);
+    ui->tableListeCourses->setRowCount(0);
     ui->tableListeCourses->setColumnCount(1);
 
     std::tuple<QString, bool> temp2 = {foodName, m_unitOrMass};
     m_listeCoursesNombre[temp2] = quantity;//m_listeCoursesNombre[temp2] + ;
 
-    int row = 0;
-    for (auto const &j : m_listeCoursesNombre) {
-        if (j.second < 0.001)
-            continue;
-
-        QTableWidgetItem *itemList;
-        std::tuple<QString, bool> temp2 = j.first;
-        QString listItem = std::get<0>(temp2);
-        bool boolItem = std::get<1>(temp2);
-        std::istringstream record(listItem.toStdString());
-        std::string fullWord;
-        std::string word;
-        record >> word;
-        if(j.second <= 1 || word.back() == 's' || word.back() == 'z')
-            fullWord = word;
-        else {
-            fullWord = word + "s";
-        }
-        while(record >> word) {
-            fullWord = fullWord + " " + word;
-        }
-        if (boolItem)
-            itemList = new QTableWidgetItem(QString::number(j.second) + " " + QString::fromStdString(fullWord));
-        else
-            itemList = new QTableWidgetItem(QString::number(j.second) + " kg " + QString::fromStdString(fullWord));
-
-        ui->tableListeCourses->insertRow(row);
-        ui->tableListeCourses->setItem(row,0,itemList);
-    }
+    updateListeCourses(ui->tableListeCourses);
     m_unitOrMass = m_unitOrMassTemp;
 }
 
@@ -439,12 +389,50 @@ void MainWindow::validateCourses()
                                         "Ajoutez des aliments à la liste de courses.");
         popUp.exec();
     }
+
+    ui->tableListeCourses_2->setRowCount(0);
+    ui->tableListeCourses_2->setColumnCount(1);
+    updateListeCourses(ui->tableListeCourses_2);
+
 }
 
 void MainWindow::unvalidateCourses()
 {
     ui->tabMain->setTabEnabled(1,false);
     ui->tabMain->setTabEnabled(2,false);
+}
+
+void MainWindow:: updateListeCourses(QTableWidget* tab)
+{
+    int row = 0;
+    for (auto const &j : m_listeCoursesNombre) {
+        qDebug() << m_listeCoursesNombre.size();
+        if (j.second < 0.001)
+            continue;
+        QTableWidgetItem *itemList;
+        std::tuple<QString, bool> temp2 = j.first;
+        QString listItem = std::get<0>(temp2);
+        bool boolItem = std::get<1>(temp2);
+        std::istringstream record(listItem.toStdString());
+        std::string fullWord;
+        std::string word;
+        record >> word;
+        if(j.second <= 1 || word.back() == 's' || word.back() == 'z')
+            fullWord = word;
+        else {
+            fullWord = word + "s";
+        }
+        while(record >> word) {
+            fullWord = fullWord + " " + word;
+        }
+        if (boolItem)
+            itemList = new QTableWidgetItem(QString::number(j.second) + " " + QString::fromStdString(fullWord));
+        else
+            itemList = new QTableWidgetItem(QString::number(j.second) + " kg " + QString::fromStdString(fullWord));
+
+        tab->insertRow(row);
+        tab->setItem(row,0,itemList);
+    }
 }
 
 

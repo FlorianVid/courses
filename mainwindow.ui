@@ -35,7 +35,7 @@
        <rect>
         <x>10</x>
         <y>10</y>
-        <width>331</width>
+        <width>339</width>
         <height>31</height>
        </rect>
       </property>
@@ -149,6 +149,16 @@
      <attribute name="title">
       <string>bilan nutritionnel</string>
      </attribute>
+     <widget class="QTableWidget" name="tableListeCourses_2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>301</width>
+        <height>491</height>
+       </rect>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tabPhysio">
      <attribute name="title">

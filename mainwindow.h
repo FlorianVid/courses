@@ -53,6 +53,9 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private:
+    void updateListeCourses(QTableWidget* tab);
+
 private slots:
     void readFileAddVegetablesButtons();
     void readFileAddFruitsButtons();
