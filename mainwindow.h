@@ -1,6 +1,7 @@
-#ifndef WINDOW_H
-#define WINDOW_H
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
 
+#include <QMainWindow>
 //std library
 #include <fstream>
 #include <iostream>
@@ -34,36 +35,41 @@
 #include <QInputDialog>
 #include <QDebug>
 
-class Window : public QWidget
+QT_BEGIN_NAMESPACE
+namespace Ui { class MainWindow; }
+QT_END_NAMESPACE
+
+class MainWindow : public QMainWindow
 {
     Q_OBJECT
-public:
-    explicit Window(QWidget *parent = nullptr);
 
 private:
-    QString m_nameWindow;
-    QFont m_basicFont;
     bool m_unitOrMass;//if true => unit otherwise mass in kg
     bool m_unitOrMassTemp;//if true => unit otherwise mass in kg
-    QTableWidget *m_listeCourses;
     std::map<std::tuple<QString, bool>, double> m_listeCoursesNombre;
+    Ui::MainWindow *ui;
 
-    QFrame* createFrame(std::vector<QString> listeLegumes, QWidget* tabLegumes);
-    void connectToQuantityButton(QList<QPushButton*> listButtons);
-    std::vector<QString> readFile(std::string path) const;
-    QGroupBox *createExclusiveGroup();
-    std::tuple<QString, bool, double> findItemToModify() const;
-    void ajoutAlimentRelatif(double quantity);
-signals:
+public:
+    MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
 
 private slots:
-    void ajoutAlimentAbsolu(double qstr);
+    void readFileAddVegetablesButtons();
+    void readFileAddFruitsButtons();
+    void readFileAddMeatButtons();
+    void getQuantity(std::string chosenFood = "", double initValue = 0);
+    void ajoutAlimentAbsolu(double quantity);
+    void ajoutAlimentRelatif(double quantity);
+    void switchMassUnit(bool checked);
     void razListe();
     void saveToFile();
-    void onToggled(bool checked);
     void removeItemFunction(bool quietRemove = false);
+    std::tuple<QString, bool, double> findItemToModify() const;
     void modifyItemFunction();
-    void getQuantity(std::string chosenFood = "", double initValue = 0);
-};
+    void validateCourses();
+    void unvalidateCourses();
 
-#endif // WINDOW_H
+
+
+};
+#endif // MAINWINDOW_H
