@@ -54,7 +54,7 @@ public:
     ~MainWindow();
 
 private:
-    void updateListeCourses(QTableWidget* tab);
+    void updateListeCourses(QTableWidget* tab) const;
 
 private slots:
     void readFileAddVegetablesButtons();
@@ -70,7 +70,7 @@ private slots:
     std::tuple<QString, bool, double> findItemToModify() const;
     void modifyItemFunction();
     void validateCourses();
-    void unvalidateCourses();
+    void unvalidateCourses() const;
 
 
 

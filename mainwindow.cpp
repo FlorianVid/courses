@@ -1,5 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "databasemanager.h"
+#include "courses.h"
+#include "aliment.h"
 
 bool is_double(const std::string& s);
 bool is_integer(const std::string& s);
@@ -381,32 +384,56 @@ void MainWindow::modifyItemFunction()
 
 void MainWindow::validateCourses()
 {
+    std::vector<Aliment> listeAliments;
+    double totProt = 0;
     if (m_listeCoursesNombre.size() > 0) {
         ui->tabMain->setTabEnabled(1,true);
         ui->tabMain->setTabEnabled(2,true);
+
+        bool ok;
+        Courses crs;
+        QString text = QInputDialog::getText(this, this->windowTitle(),
+                                             tr("Identifiant pour les courses :"), QLineEdit::Normal,
+                                             "id courses", &ok);
+        if (ok && !text.isEmpty())
+            crs = Courses(text);
+
+        ui->tableListeCourses_2->setRowCount(0);
+        ui->tableListeCourses_2->setColumnCount(1);
+        updateListeCourses(ui->tableListeCourses_2);
+
+        //db management
+        DatabaseManager& dbMng = DatabaseManager::instance();
+        dbMng.m_coursesDao.addCourses(crs);
+
+        for(auto const& alim : m_listeCoursesNombre) {
+            Aliment alObj = Aliment(std::get<0>(alim.first));
+            dbMng.m_alimentDao.addAlimentInCourses(alObj,crs.getId());
+            listeAliments.push_back(alObj);
+            //values of prot to be checked => ok
+            //qDebug() << alObj.getNut().protein;
+            totProt += alObj.getNut().protein*alim.second*0.1;
+        }
+        ui->labelNameCourses->setText(text);
+        ui->labelTotProt->setText(QString::number(totProt) + " g");
+
     } else {
         QMessageBox popUp = QMessageBox(QMessageBox::Information,this->windowTitle(),
                                         "Ajoutez des aliments à la liste de courses.");
         popUp.exec();
     }
-
-    ui->tableListeCourses_2->setRowCount(0);
-    ui->tableListeCourses_2->setColumnCount(1);
-    updateListeCourses(ui->tableListeCourses_2);
-
 }
 
-void MainWindow::unvalidateCourses()
+void MainWindow::unvalidateCourses() const
 {
     ui->tabMain->setTabEnabled(1,false);
     ui->tabMain->setTabEnabled(2,false);
 }
 
-void MainWindow:: updateListeCourses(QTableWidget* tab)
+void MainWindow:: updateListeCourses(QTableWidget* tab) const
 {
     int row = 0;
     for (auto const &j : m_listeCoursesNombre) {
-        qDebug() << m_listeCoursesNombre.size();
         if (j.second < 0.001)
             continue;
         QTableWidgetItem *itemList;
