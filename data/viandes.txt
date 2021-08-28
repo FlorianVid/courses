@@ -1,5 +1,5 @@
-Poulet
-Poisson
-Boeuf
-Oeuf
-Jambon
+Poulet,1.50
+Poisson,NA
+Boeuf,NA
+Oeuf,0.070
+Jambon,NA

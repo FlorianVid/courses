@@ -1,10 +1,10 @@
-Banane
-Poire
-Kiwi
-Pomme
-Abricot
-Fraise
-Cerise
-Mangue
-Fruit de la passion
-Ananas
+Banane,0.150
+Poire,0.120
+Kiwi,0.100
+Pomme,0.150
+Abricot,0.045
+Fraise,0.015
+Cerise,0.007
+Mangue,0.300
+Fruit de la passion,0.090
+Ananas,2.00

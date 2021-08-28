@@ -10,6 +10,7 @@
 #include <map>
 #include <tuple>
 #include <sstream>
+#include <cmath>
 //Qt widgets
 #include <QLabel>
 #include <QWidget>
@@ -34,6 +35,9 @@
 #include <QHeaderView>
 #include <QInputDialog>
 #include <QDebug>
+//other not Qt
+#include "aliment.h"
+#include "qpushbuttonaliment.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -46,7 +50,7 @@ class MainWindow : public QMainWindow
 private:
     bool m_unitOrMass;//if true => unit otherwise mass in kg
     bool m_unitOrMassTemp;//if true => unit otherwise mass in kg
-    std::map<std::tuple<QString, bool>, double> m_listeCoursesNombre;
+    std::map<std::tuple<QString, bool>, Aliment> m_listeCoursesNombre;//name, unit or mass?, Aliment
     Ui::MainWindow *ui;
 
 public:
@@ -61,8 +65,7 @@ private slots:
     void readFileAddFruitsButtons();
     void readFileAddMeatButtons();
     void getQuantity(std::string chosenFood = "", double initValue = 0);
-    void ajoutAlimentAbsolu(double quantity);
-    void ajoutAlimentRelatif(double quantity);
+    void ajoutAliment(double quantity);
     void switchMassUnit(bool checked);
     void razListe();
     void saveToFile();

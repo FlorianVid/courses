@@ -55,19 +55,35 @@ void MainWindow::readFileAddVegetablesButtons()
 {
     std::string path = "C:/Users/fvida/Documents/codeQt/raggamuffin/data/legumes.txt";
     std::vector<QString> listeLegumes;
+    std::vector<double> listeMassPerUnit;
     std::ifstream dataFile(path);
     if(!dataFile)
         std::cerr << "No data ?" << std::endl;
+
     std::string line;
+    std::string delimiter = ",";//delimiter in the data files for food and mass per unit
     while (getline(dataFile, line)) {
-        listeLegumes.push_back(QString::fromStdString(line));
+        std::string name = line.substr(0, line.find(delimiter));
+        // convert string to lower case
+        std::for_each(name.begin(), name.end(), [](char & c){
+            c = ::tolower(c);
+        });
+        listeLegumes.push_back(QString::fromStdString(name));
+
+        std::string massPerUnitString = line.substr(line.find(delimiter) + 1, line.size());
+        if(is_double(massPerUnitString)) {
+            listeMassPerUnit.push_back(stod(massPerUnitString));
+        } else {
+            listeMassPerUnit.push_back(nan(""));
+        }
     }
     dataFile.close();
 
     int nbLegumes = listeLegumes.size();
     QPushButton* buttonLegumes[nbLegumes];
     for (int i = 0 ; i < nbLegumes ; i++) {
-        buttonLegumes[i] = new QPushButton(listeLegumes.at(i), ui->tabLegumes);
+        buttonLegumes[i] = new QPushButtonAliment(listeLegumes.at(i), ui->tabLegumes,"legume",listeMassPerUnit.at(i));
+        buttonLegumes[i]->setObjectName(listeLegumes.at(i));
         //buttonLegumes[i]->setFont(m_basicFont);
     }
 
@@ -85,20 +101,35 @@ void MainWindow::readFileAddFruitsButtons()
 {
     std::string path = "C:/Users/fvida/Documents/codeQt/raggamuffin/data/fruits.txt";
     std::vector<QString> listeFruits;
+    std::vector<double> listeMassPerUnit;
     std::ifstream dataFile(path);
     if(!dataFile)
         std::cerr << "No data ?" << std::endl;
+
     std::string line;
+    std::string delimiter = ",";//delimiter in the data files for food and mass per unit
     while (getline(dataFile, line)) {
-        listeFruits.push_back(QString::fromStdString(line));
+        std::string name = line.substr(0, line.find(delimiter));
+        // convert string to lower case
+        std::for_each(name.begin(), name.end(), [](char & c){
+            c = ::tolower(c);
+        });
+        listeFruits.push_back(QString::fromStdString(name));
+
+        std::string massPerUnitString = line.substr(line.find(delimiter) + 1, line.size());
+        if(is_double(massPerUnitString)) {
+            listeMassPerUnit.push_back(stod(massPerUnitString));
+        } else {
+            listeMassPerUnit.push_back(nan(""));
+        }
     }
     dataFile.close();
 
     int nbFruits = listeFruits.size();
     QPushButton* buttonFruits[nbFruits];
     for (int i = 0 ; i < nbFruits ; i++) {
-        buttonFruits[i] = new QPushButton(listeFruits.at(i), ui->tabFruits);
-        //buttonLegumes[i]->setFont(m_basicFont);
+        buttonFruits[i] = new QPushButtonAliment(listeFruits.at(i), ui->tabFruits, "fruit",listeMassPerUnit.at(i));
+        buttonFruits[i]->setObjectName(listeFruits.at(i));
     }
 
     QGridLayout *layoutFruits = new QGridLayout(ui->tabFruits);//3 items per row
@@ -115,20 +146,34 @@ void MainWindow::readFileAddMeatButtons()
 {
     std::string path = "C:/Users/fvida/Documents/codeQt/raggamuffin/data/viandes.txt";
     std::vector<QString> listeViande;
+    std::vector<double> listeMassPerUnit;
     std::ifstream dataFile(path);
     if(!dataFile)
         std::cerr << "No data ?" << std::endl;
     std::string line;
+    std::string delimiter = ",";//delimiter in the data files for food and mass per unit
     while (getline(dataFile, line)) {
-        listeViande.push_back(QString::fromStdString(line));
+        std::string name = line.substr(0, line.find(delimiter));
+        // convert string to lower case
+        std::for_each(name.begin(), name.end(), [](char & c){
+            c = ::tolower(c);
+        });
+        listeViande.push_back(QString::fromStdString(name));
+
+        std::string massPerUnitString = line.substr(line.find(delimiter) + 1, line.size());
+        if(is_double(massPerUnitString)) {
+            listeMassPerUnit.push_back(stod(massPerUnitString));
+        } else {
+            listeMassPerUnit.push_back(nan(""));
+        }
     }
     dataFile.close();
 
     int nbViande = listeViande.size();
     QPushButton* buttonViande[nbViande];
     for (int i = 0 ; i < nbViande ; i++) {
-        buttonViande[i] = new QPushButton(listeViande.at(i), ui->tabViandes);
-        //buttonLegumes[i]->setFont(m_basicFont);
+        buttonViande[i] = new QPushButtonAliment(listeViande.at(i), ui->tabViandes,"viande",listeMassPerUnit.at(i));
+        buttonViande[i]->setObjectName(listeViande.at(i));
     }
 
     QGridLayout *layoutLegumes = new QGridLayout(ui->tabViandes);//3 items per row
@@ -161,9 +206,9 @@ void MainWindow::getQuantity(std::string chosenFood, double initValue)
 
     if (initValue > 0) {//no initial value
         if (is_vowel(firstChar))
-            addedFood = "Quantité à ajouter d'" + chosenFood + stringUnitMass;
+            addedFood = "Quantité mise à jour d'" + chosenFood + stringUnitMass;
         else {
-            addedFood = "Quantité à ajouter de " + chosenFood + stringUnitMass;
+            addedFood = "Quantité mise à jour de " + chosenFood + stringUnitMass;
         }
     } else {
         if (is_vowel(firstChar))
@@ -177,12 +222,7 @@ void MainWindow::getQuantity(std::string chosenFood, double initValue)
     QInputDialog *popUp = new QInputDialog;
     popUp->setInputMode(QInputDialog::DoubleInput);
 
-    if (initValue > 0) //no initial value
-        connect(popUp, &QInputDialog::doubleValueSelected, this, &MainWindow::ajoutAlimentAbsolu);
-    else {
-        connect(popUp, &QInputDialog::doubleValueSelected, this, &MainWindow::ajoutAlimentRelatif);
-    }
-
+    connect(popUp, &QInputDialog::doubleValueSelected, this, &MainWindow::ajoutAliment);
 
     bool ok;
     double quantity = popUp->getDouble(this, tr("Ajout d'aliment"),
@@ -197,36 +237,38 @@ void MainWindow::getQuantity(std::string chosenFood, double initValue)
 
 }
 
-void MainWindow::ajoutAlimentAbsolu(double quantity)
+void MainWindow::ajoutAliment(double quantity)
 {
     QInputDialog * popUp = (QInputDialog *) sender();
 
     QString foodName = popUp->textValue();
 
     ui->tableListeCourses->clear();
-    ui->tableListeCourses->setRowCount(0);
-
-    std::tuple<QString, bool> temp2 = {foodName, m_unitOrMass};
-    m_listeCoursesNombre[temp2] = quantity;
-
-    updateListeCourses(ui->tableListeCourses);
-    m_unitOrMass = m_unitOrMassTemp;
-}
-
-void MainWindow::ajoutAlimentRelatif(double quantity)
-{
-    QInputDialog * popUp = (QInputDialog *) sender();
-
-    QString foodName = popUp->textValue();
-
-    ui->tableListeCourses->clear();
-    //unsigned int nbFood = m_listeCoursesNombre.size();
-
     ui->tableListeCourses->setRowCount(0);
     ui->tableListeCourses->setColumnCount(1);
 
     std::tuple<QString, bool> temp2 = {foodName, m_unitOrMass};
-    m_listeCoursesNombre[temp2] = quantity;//m_listeCoursesNombre[temp2] + ;
+
+    QPushButtonAliment* correspButton = ui->tabFruits->findChild<QPushButtonAliment*>(foodName);
+    if(correspButton == nullptr) {
+        correspButton = ui->tabLegumes->findChild<QPushButtonAliment*>(foodName);
+        if(correspButton == nullptr) {
+            correspButton = ui->tabViandes->findChild<QPushButtonAliment*>(foodName);
+            if(correspButton == nullptr) {
+                std::cerr << "QPushButtonAliment correspondant à l'aliment ajouté pas trouvé" << std::endl;
+            }
+        }
+    }
+
+    if(m_unitOrMass) { //need to convert quantity to mass
+        m_listeCoursesNombre[temp2] = Aliment(foodName, quantity*correspButton->getMassPerUnit(), correspButton->getCategory()) ;// + m_listeCoursesNombre[temp2].getQuantity()
+    } else {
+        m_listeCoursesNombre[temp2] = Aliment(foodName, quantity, correspButton->getCategory()) ;// + m_listeCoursesNombre[temp2].getQuantity()
+    }
+
+    for(auto const& a : m_listeCoursesNombre) {
+        qDebug() << a.second.getCategory();
+    }
 
     updateListeCourses(ui->tableListeCourses);
     m_unitOrMass = m_unitOrMassTemp;
@@ -282,17 +324,16 @@ void MainWindow::saveToFile()
             std::tuple<QString, bool> temp2 = j.first;
             QString listItem = std::get<0>(temp2);
 
-            if (!std::get<1>(temp2))
-                if(j.second > 1)
-                    out << (QString::number(j.second) + " kg " + listItem + "s\n");
+            if (!std::get<1>(temp2)) {
+                if(j.second.getQuantity() > 1)
+                    out << (QString::number(j.second.getQuantity()) + " kg " + listItem + "s\n");
                 else
-                    out << (QString::number(j.second) + " kg " + listItem + "\n");
+                    out << (QString::number(j.second.getQuantity()) + " kg " + listItem + "\n");
+            } else {
+            if(j.second.getQuantity() > 1)
+                out << (QString::number(j.second.getQuantity()) + " " + listItem + "s\n");
             else
-            {
-            if(j.second > 1)
-                out << (QString::number(j.second) + " " + listItem + "s\n");
-            else
-                out << (QString::number(j.second) + " " + listItem + "\n");
+                out << (QString::number(j.second.getQuantity()) + " " + listItem + "\n");
             }
         }
     }
@@ -344,7 +385,7 @@ std::tuple<QString, bool, double> MainWindow::findItemToModify() const
             if((lastWord == std::get<0>(it)) ||
                (lastWord==(std::get<0>(it) + QString("s")))||
                (lastWord == (std::get<0>(it) + QString("z")))) {
-                double nbFood = m_listeCoursesNombre.at(it);
+                double nbFood = m_listeCoursesNombre.at(it).getQuantity();
                 return (std::make_tuple(std::get<0>(it), std::get<1>(it), nbFood));
             }
         }
@@ -406,16 +447,15 @@ void MainWindow::validateCourses()
         DatabaseManager& dbMng = DatabaseManager::instance();
         dbMng.m_coursesDao.addCourses(crs);
 
-        for(auto const& alim : m_listeCoursesNombre) {
-            Aliment alObj = Aliment(std::get<0>(alim.first));
-            dbMng.m_alimentDao.addAlimentInCourses(alObj,crs.getId());
-            listeAliments.push_back(alObj);
-            //values of prot to be checked => ok
-            //qDebug() << alObj.getNut().protein;
-            totProt += alObj.getNut().protein*alim.second*0.1;
+        for(auto& alim : m_listeCoursesNombre) {
+            dbMng.m_alimentDao.addAlimentInCourses(alim.second,crs.getId());
+            listeAliments.push_back(alim.second);
+
+            totProt += alim.second.getNut().protein;
+
         }
         ui->labelNameCourses->setText(text);
-        ui->labelTotProt->setText(QString::number(totProt) + " g");
+        ui->labelTotProt->setText(QString::number(totProt) + tr(" g de protéines"));
 
     } else {
         QMessageBox popUp = QMessageBox(QMessageBox::Information,this->windowTitle(),
@@ -434,7 +474,7 @@ void MainWindow:: updateListeCourses(QTableWidget* tab) const
 {
     int row = 0;
     for (auto const &j : m_listeCoursesNombre) {
-        if (j.second < 0.001)
+        if (j.second.getQuantity() < 0.001)
             continue;
         QTableWidgetItem *itemList;
         std::tuple<QString, bool> temp2 = j.first;
@@ -444,7 +484,7 @@ void MainWindow:: updateListeCourses(QTableWidget* tab) const
         std::string fullWord;
         std::string word;
         record >> word;
-        if(j.second <= 1 || word.back() == 's' || word.back() == 'z')
+        if(j.second.getQuantity() <= 1 || word.back() == 's' || word.back() == 'z')
             fullWord = word;
         else {
             fullWord = word + "s";
@@ -453,9 +493,9 @@ void MainWindow:: updateListeCourses(QTableWidget* tab) const
             fullWord = fullWord + " " + word;
         }
         if (boolItem)
-            itemList = new QTableWidgetItem(QString::number(j.second) + " " + QString::fromStdString(fullWord));
+            itemList = new QTableWidgetItem(QString::number(j.second.getQuantity()) + " " + QString::fromStdString(fullWord));
         else
-            itemList = new QTableWidgetItem(QString::number(j.second) + " kg " + QString::fromStdString(fullWord));
+            itemList = new QTableWidgetItem(QString::number(j.second.getQuantity()) + " kg " + QString::fromStdString(fullWord));
 
         tab->insertRow(row);
         tab->setItem(row,0,itemList);

@@ -1,13 +1,14 @@
-Carotte
-Oignon
-Fenouil
-Pomme de terre
-Ail
-Navet
-Courgette
-Aubergine
-Riz
-Haricot vert
-Tomate
-Petit pois
-Pâte
+Carotte,0.125
+Oignon,0.100
+Echalotte,0.025
+Fenouil,0.300
+Pomme de terre,0.200
+Ail,0.070
+Navet,0.100
+Courgette,0.200
+Aubergine,0.200
+Riz,NA
+Haricot vert,NA
+Tomate,0.130
+Petit pois,NA
+Pâte,NA

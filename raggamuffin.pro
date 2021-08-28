@@ -12,7 +12,8 @@ SOURCES += \
     coursesdao.cpp \
     databasemanager.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    qpushbuttonaliment.cpp
 
 HEADERS += \
     aliment.h \
@@ -20,7 +21,8 @@ HEADERS += \
     courses.h \
     coursesdao.h \
     databasemanager.h \
-    mainwindow.h
+    mainwindow.h \
+    qpushbuttonaliment.h
 
 FORMS += \
     mainwindow.ui
