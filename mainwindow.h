@@ -46,6 +46,7 @@
 //other not Qt
 #include "aliment.h"
 #include "qpushbuttonaliment.h"
+#include "courses.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -60,6 +61,7 @@ private:
     bool m_unitOrMassTemp;//if true => unit otherwise mass in kg
     std::map<std::tuple<QString, bool>, Aliment> m_listeCoursesNombre;//name, unit or mass?, Aliment
     Ui::MainWindow *ui;
+    Courses m_crs;
 
 public:
     MainWindow(QWidget *parent = nullptr);
@@ -67,6 +69,7 @@ public:
 
 private:
     void updateListeCourses(QTableWidget* tab) const;
+    void updateBarChart() const;
 
 private slots:
     void readFileAddVegetablesButtons();
@@ -80,8 +83,10 @@ private slots:
     void removeItemFunction(bool quietRemove = false);
     std::tuple<QString, bool, double> findItemToModify() const;
     void modifyItemFunction();
-    void validateCourses();
+    void validateCourses(bool nouvellesCourses = true);
     void unvalidateCourses() const;
+    void validateNutri() const;
+
 
 
 

@@ -43,12 +43,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->buttonModify, SIGNAL (clicked()), this, SLOT (modifyItemFunction()));
     connect(ui->buttonValidate, SIGNAL (clicked()), this, SLOT (validateCourses()));
 
-//    connect(ui->buttonRAZ_2, SIGNAL (clicked()), this, SLOT (razListe()));//ok
-//    connect(ui->buttonSave_2, SIGNAL (clicked()), this, SLOT (saveToFile()));//ok
-//    connect(ui->buttonRemove_2, SIGNAL (clicked()), this, SLOT (removeItemFunction()));
-//    connect(ui->buttonModify_2, SIGNAL (clicked()), this, SLOT (modifyItemFunction()));
-//    connect(ui->buttonValidate_2, SIGNAL (clicked()), this, SLOT (validateCourses()));
+    connect(ui->buttonRAZ_2, SIGNAL (clicked()), this, SLOT (razListe()));//ok
+    connect(ui->buttonSave_2, SIGNAL (clicked()), this, SLOT (saveToFile()));//ok
+    connect(ui->buttonRemove_2, SIGNAL (clicked()), this, SLOT (removeItemFunction()));//ok
+    connect(ui->buttonModify_2, SIGNAL (clicked()), this, SLOT (modifyItemFunction()));
+    connect(ui->buttonValidate_2, SIGNAL (clicked()), this, SLOT (validateNutri()));//ok
 
+    //initialize bar chart widget
     QChart* chart = new QChart();
     chart->setTitle("Bilan nutritionnel des courses");
     chart->setAnimationOptions(QChart::SeriesAnimations);
@@ -74,8 +75,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->layoutBarChart->addWidget(chartView);
 
     //qDebug() << ui->layoutBarChart->itemAt(0)->widget()->objectName();
-
-
     unvalidateCourses();
 }
 
@@ -263,8 +262,9 @@ void MainWindow::getQuantity(std::string chosenFood, double initValue)
                                          0,100,1,&ok,Qt::WindowFlags(),0.1);
 
     popUp->setTextValue(QString(tr(chosenFood.c_str())));
-
-    unvalidateCourses();
+    int indCurTab = ui->tabMain->currentIndex();
+    if(indCurTab == 0)
+        unvalidateCourses();
 
     emit popUp->doubleValueSelected(quantity);
 
@@ -330,6 +330,7 @@ void MainWindow::razListe()
     if (reply == QMessageBox::Yes) {
         m_listeCoursesNombre.clear();
         ui->tableListeCourses->clear();//->setText(temp);
+        ui->tableListeCourses_2->clear();
     }
     unvalidateCourses();
 }
@@ -376,11 +377,21 @@ void MainWindow::saveToFile()
     }
 }
 
-void MainWindow::removeItemFunction(bool quietRemove)
+void MainWindow::removeItemFunction(bool quietRemove) //quietmove == true when modifying (modifying = remove + add)
 {
-    if (ui->tableListeCourses->currentIndex().isValid()) {
-        int curRow = ui->tableListeCourses->currentRow();
-        QTableWidgetItem *curItem = ui->tableListeCourses->currentItem();
+    int indCurTab = ui->tabMain->currentIndex();
+    QTableWidget* tabList = nullptr;
+    if(indCurTab == 0) {
+        tabList = ui->tableListeCourses;
+    } else if(indCurTab == 1) {
+        tabList = ui->tableListeCourses_2;
+    } else {
+        std::cerr << "Tab with food list not recognized" << std::endl;
+    }
+
+    if (tabList->currentIndex().isValid()) {
+        int curRow = tabList->currentRow();
+        QTableWidgetItem *curItem = tabList->currentItem();
         QStringList listWords = curItem->text().split(" ");
         QString lastWord = listWords.last();
 
@@ -403,14 +414,33 @@ void MainWindow::removeItemFunction(bool quietRemove)
             }
         }
         ui->tableListeCourses->removeRow(curRow);
+        ui->tableListeCourses_2->removeRow(curRow);
     }
-    unvalidateCourses();
+    if(indCurTab == 0){
+        unvalidateCourses();
+    } else {
+        if(m_listeCoursesNombre.size() == 0) {
+            unvalidateCourses();
+        } else {
+            validateCourses(false);
+        }
+    }
 }
 
 std::tuple<QString, bool, double> MainWindow::findItemToModify() const
 {
-    if (ui->tableListeCourses->currentIndex().isValid()) {
-        QTableWidgetItem *curItem = ui->tableListeCourses->currentItem();
+    int indCurTab = ui->tabMain->currentIndex();
+    QTableWidget* tabList = nullptr;
+    if(indCurTab == 0) {
+        tabList = ui->tableListeCourses;
+    } else if(indCurTab == 1) {
+        tabList = ui->tableListeCourses_2;
+    } else {
+        std::cerr << "Tab with food list not recognized" << std::endl;
+    }
+
+    if (tabList->currentIndex().isValid()) {
+        QTableWidgetItem *curItem = tabList->currentItem();
         QStringList listWords = curItem->text().split(" ");
         QString lastWord = listWords.last();
 
@@ -438,8 +468,17 @@ std::tuple<QString, bool, double> MainWindow::findItemToModify() const
 
 void MainWindow::modifyItemFunction()
 {
-    if (ui->tableListeCourses->currentIndex().isValid()) {
+    int indCurTab = ui->tabMain->currentIndex();
+    QTableWidget* tabList = nullptr;
+    if(indCurTab == 0) {
+        tabList = ui->tableListeCourses;
+    } else if(indCurTab == 1) {
+        tabList = ui->tableListeCourses_2;
+    } else {
+        std::cerr << "Tab with food list not recognized" << std::endl;
+    }
 
+    if (tabList->currentIndex().isValid()) {
         std::tuple<QString, bool, double> data2modify = findItemToModify();
 
         std::string qstion = "";
@@ -463,10 +502,19 @@ void MainWindow::modifyItemFunction()
 
         getQuantity(std::get<0>(data2modify).toStdString(), initValue);
     }
-    unvalidateCourses();
+
+    if(indCurTab == 0){
+        unvalidateCourses();
+    } else {
+        if(m_listeCoursesNombre.size() == 0) {
+            unvalidateCourses();
+        } else {
+            validateCourses(false);
+        }
+    }
 }
 
-void MainWindow::validateCourses()
+void MainWindow::validateCourses(bool nouvellesCourses)
 {
     std::vector<Aliment> listeAliments;
     double totProtFruit = 0;
@@ -486,17 +534,17 @@ void MainWindow::validateCourses()
     double totGluc = 0;
     double totFib = 0;
     const int nbNut = 4;
+    const int nbTypeFood = 3;//fruit, legume, viande
     if (m_listeCoursesNombre.size() > 0) {
-        ui->tabMain->setTabEnabled(1,true);
-        //ui->tabMain->setTabEnabled(2,true);
-
-        bool ok;
-        Courses crs;
-        QString text = QInputDialog::getText(this, this->windowTitle(),
-                                             tr("Identifiant pour les courses :"), QLineEdit::Normal,
-                                             "id courses", &ok);
-        if (ok && !text.isEmpty())
-            crs = Courses(text);
+        if(nouvellesCourses) {
+            ui->tabMain->setTabEnabled(1,true);
+            bool ok;
+            QString text = QInputDialog::getText(this, this->windowTitle(),
+                                                 tr("Identifiant pour les courses :"), QLineEdit::Normal,
+                                                 "id courses", &ok);
+            if (ok && !text.isEmpty())
+                m_crs = Courses(text);
+        }
 
         ui->tableListeCourses_2->setRowCount(0);
         ui->tableListeCourses_2->setColumnCount(1);
@@ -504,10 +552,10 @@ void MainWindow::validateCourses()
 
         //db management
         DatabaseManager& dbMng = DatabaseManager::instance();
-        dbMng.m_coursesDao.addCourses(crs);
+        dbMng.m_coursesDao.addCourses(m_crs);
 
         for(auto& alim : m_listeCoursesNombre) {
-            dbMng.m_alimentDao.addAlimentInCourses(alim.second,crs.getId());
+            dbMng.m_alimentDao.addAlimentInCourses(alim.second,m_crs.getId());
             listeAliments.push_back(alim.second);
 
             if(alim.second.getCategory() == "fruit") {
@@ -527,7 +575,7 @@ void MainWindow::validateCourses()
                 totFibViande += alim.second.getNut().fiber;
             }
         }
-        ui->labelNameCourses->setText(text);
+        ui->labelNameCourses->setText(m_crs.getName());
         totProt = totProtFruit + totProtLeg + totProtViande;
         totLip = totLipFruit + totLipLeg + totLipViande;
         totGluc = totGlucFruit + totGlucLeg + totLipViande;
@@ -542,7 +590,6 @@ void MainWindow::validateCourses()
                                         "Ajoutez des aliments à la liste de courses.");
         popUp.exec();
     }
-
 
     QBarSet *setFruit = new QBarSet("Fruits");
     *setFruit << totProtFruit << totLipFruit << totGlucFruit << totFibFruit;
@@ -563,7 +610,15 @@ void MainWindow::validateCourses()
     chart->addSeries(series);
     series->attachAxis(chart->axes(Qt::Horizontal).back());
 
-    double nut[nbNut] = {totProt, totLip, totGluc, totFib};
+    //set range y axis
+    double totProtList[nbTypeFood] = {totProtFruit, totProtLeg, totProtViande};
+    double totLipList[nbTypeFood] = {totLipFruit, totLipLeg, totLipViande};
+    double totGlucList[nbTypeFood] = {totGlucFruit, totGlucLeg, totGlucViande};
+    double totFibList[nbTypeFood] = {totFibFruit, totFibLeg, totFibViande};
+    double nut[nbNut] = {*std::max_element(totProtList,totProtList + nbTypeFood),
+                         *std::max_element(totLipList,totLipList + nbTypeFood),
+                         *std::max_element(totGlucList,totGlucList + nbTypeFood),
+                         *std::max_element(totFibList,totFibList + nbTypeFood)};
     chart->axes(Qt::Vertical).back()->setRange(0,*std::max_element(nut,nut + nbNut));
     series->attachAxis(chart->axes(Qt::Vertical).back());
 
@@ -576,7 +631,7 @@ void MainWindow::unvalidateCourses() const
     ui->tabMain->setTabEnabled(2,false);
 }
 
-void MainWindow:: updateListeCourses(QTableWidget* tab) const
+void MainWindow::updateListeCourses(QTableWidget* tab) const
 {
     int row = 0;
     for (auto const &j : m_listeCoursesNombre) {
@@ -608,6 +663,14 @@ void MainWindow:: updateListeCourses(QTableWidget* tab) const
     }
 }
 
+void MainWindow::updateBarChart() const {
+
+}
+
+void MainWindow::validateNutri()  const {
+    ui->tabMain->setTabEnabled(2,true);
+    ui->tabMain->setCurrentIndex(2);
+}
 
 bool is_double(const std::string& s)
 {
