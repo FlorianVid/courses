@@ -11,6 +11,7 @@
 #include <tuple>
 #include <sstream>
 #include <cmath>
+#include <memory>
 //Qt widgets
 #include <QLabel>
 #include <QWidget>

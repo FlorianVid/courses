@@ -100,7 +100,7 @@
         <height>451</height>
        </rect>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout">
+      <layout class="QVBoxLayout" name="verticalLayout_listeCourses">
        <item>
         <widget class="QTableWidget" name="tableListeCourses"/>
        </item>
@@ -149,16 +149,6 @@
      <attribute name="title">
       <string>bilan nutritionnel</string>
      </attribute>
-     <widget class="QTableWidget" name="tableListeCourses_2">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>50</y>
-        <width>301</width>
-        <height>451</height>
-       </rect>
-      </property>
-     </widget>
      <widget class="QLabel" name="labelNameCourses">
       <property name="geometry">
        <rect>
@@ -175,13 +165,13 @@
      <widget class="QWidget" name="verticalLayoutWidget_2">
       <property name="geometry">
        <rect>
-        <x>320</x>
+        <x>100</x>
         <y>400</y>
         <width>221</width>
         <height>101</height>
        </rect>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <layout class="QVBoxLayout" name="layoutNutriTot">
        <item>
         <widget class="QLabel" name="labelTotProt">
          <property name="text">
@@ -215,18 +205,71 @@
      <widget class="QWidget" name="verticalLayoutWidget_3">
       <property name="geometry">
        <rect>
-        <x>320</x>
+        <x>20</x>
         <y>50</y>
-        <width>441</width>
+        <width>391</width>
         <height>331</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="layoutBarChart"/>
      </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_4">
+      <property name="geometry">
+       <rect>
+        <x>440</x>
+        <y>50</y>
+        <width>291</width>
+        <height>451</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_listeCourses_22">
+       <item>
+        <widget class="QTableWidget" name="tableListeCourses_2"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="buttonSave_2">
+         <property name="text">
+          <string>Enregistrer la liste de courses</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="buttonRemove_2">
+         <property name="text">
+          <string>Enlever l'aliment</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="buttonModify_2">
+         <property name="text">
+          <string>Modifier la quantité d'aliment</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="buttonRAZ_2">
+         <property name="text">
+          <string>RAZ de la liste des courses</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="buttonValidate_2">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(85, 255, 0);</string>
+         </property>
+         <property name="text">
+          <string>Valider les courses</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
-    <widget class="QWidget" name="tabPhysio">
+    <widget class="QWidget" name="tabBudget">
      <attribute name="title">
-      <string>bilan physiologique</string>
+      <string>bilan financier</string>
      </attribute>
     </widget>
    </widget>

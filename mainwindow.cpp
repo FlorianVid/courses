@@ -43,6 +43,39 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->buttonModify, SIGNAL (clicked()), this, SLOT (modifyItemFunction()));
     connect(ui->buttonValidate, SIGNAL (clicked()), this, SLOT (validateCourses()));
 
+//    connect(ui->buttonRAZ_2, SIGNAL (clicked()), this, SLOT (razListe()));//ok
+//    connect(ui->buttonSave_2, SIGNAL (clicked()), this, SLOT (saveToFile()));//ok
+//    connect(ui->buttonRemove_2, SIGNAL (clicked()), this, SLOT (removeItemFunction()));
+//    connect(ui->buttonModify_2, SIGNAL (clicked()), this, SLOT (modifyItemFunction()));
+//    connect(ui->buttonValidate_2, SIGNAL (clicked()), this, SLOT (validateCourses()));
+
+    QChart* chart = new QChart();
+    chart->setTitle("Bilan nutritionnel des courses");
+    chart->setAnimationOptions(QChart::SeriesAnimations);
+
+    QStringList categories;
+    categories << "Protéines" << "Lipides" << "Glucides" << "Fibres";
+    QBarCategoryAxis *axisX = new QBarCategoryAxis();
+    axisX->append(categories);
+    chart->addAxis(axisX, Qt::AlignBottom);
+
+    QValueAxis *axisY = new QValueAxis();
+    axisY->setTitleText("Masse (g)");
+    chart->addAxis(axisY, Qt::AlignLeft);
+
+    chart->legend()->setVisible(true);
+    chart->legend()->setAlignment(Qt::AlignBottom);
+    //chart->setObjectName("aaa");
+
+    QChartView *chartView = new QChartView(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+    //chartView->setObjectName("chartNut");
+
+    ui->layoutBarChart->addWidget(chartView);
+
+    //qDebug() << ui->layoutBarChart->itemAt(0)->widget()->objectName();
+
+
     unvalidateCourses();
 }
 
@@ -321,6 +354,10 @@ void MainWindow::saveToFile()
         QTextStream out(&file);// bug d'affichage dans le txt avec QDataStream
 
         for (auto const &j : m_listeCoursesNombre) {
+            if(j.second.getMass() < 0.000000001) {
+                continue;
+            }
+
             std::tuple<QString, bool> temp2 = j.first;
             QString listItem = std::get<0>(temp2);
 
@@ -451,7 +488,7 @@ void MainWindow::validateCourses()
     const int nbNut = 4;
     if (m_listeCoursesNombre.size() > 0) {
         ui->tabMain->setTabEnabled(1,true);
-        ui->tabMain->setTabEnabled(2,true);
+        //ui->tabMain->setTabEnabled(2,true);
 
         bool ok;
         Courses crs;
@@ -518,32 +555,18 @@ void MainWindow::validateCourses()
     series->append(setFruit);
     series->append(setLeg);
     series->append(setViande);
-    QChart *chart = new QChart();
+
+    QChartView* chartVl = (QChartView*)ui->layoutBarChart->itemAt(0)->widget();//ui->layoutBarChart->findChild<QChart*>("aaa");
+    //QChartView* chartV = chartVl[0];
+    QChart* chart = chartVl->chart();//chartV->chart();
+    chart->removeAllSeries();
     chart->addSeries(series);
-    chart->setTitle("Bilan nutritionnel des courses");
-    chart->setAnimationOptions(QChart::SeriesAnimations);
+    series->attachAxis(chart->axes(Qt::Horizontal).back());
 
-    QStringList categories;
-    categories << "Protéines" << "Lipides" << "Glucides" << "Fibres";
-    QBarCategoryAxis *axisX = new QBarCategoryAxis();
-    axisX->append(categories);
-    chart->addAxis(axisX, Qt::AlignBottom);
-    series->attachAxis(axisX);
-
-    QValueAxis *axisY = new QValueAxis();
     double nut[nbNut] = {totProt, totLip, totGluc, totFib};
-    axisY->setRange(0,*std::max_element(nut,nut + nbNut));
-    axisY->setTitleText("Masse (g)");
-    chart->addAxis(axisY, Qt::AlignLeft);
-    series->attachAxis(axisY);
+    chart->axes(Qt::Vertical).back()->setRange(0,*std::max_element(nut,nut + nbNut));
+    series->attachAxis(chart->axes(Qt::Vertical).back());
 
-    chart->legend()->setVisible(true);
-    chart->legend()->setAlignment(Qt::AlignBottom);
-
-    QChartView *chartView = new QChartView(chart);
-    chartView->setRenderHint(QPainter::Antialiasing);
-
-    ui->layoutBarChart->addWidget(chartView);
     ui->tabMain->setCurrentIndex(1);
 }
 
