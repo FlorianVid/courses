@@ -28,6 +28,13 @@
 #include <QGroupBox>
 #include <QGridLayout>
 #include <QComboBox>
+//Qt charts
+#include <QBarSet>
+#include <QBarSeries>
+#include <QChart>
+#include <QBarCategoryAxis>
+#include <QValueAxis>
+#include <QChartView>
 //other Qt
 #include <QApplication>
 #include <QTextStream>

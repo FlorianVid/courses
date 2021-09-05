@@ -16,8 +16,8 @@ void Aliment::setId(int id) {
     m_id = id;
 }
 
-void Aliment::setNut(double prot) {
-    m_nut = {prot};
+void Aliment::setNut(double prot, double lip, double glucideDouble, double fibDouble) {
+    m_nut = {prot, lip, glucideDouble, fibDouble};
 }
 
 Nutriments Aliment::getNut() const {

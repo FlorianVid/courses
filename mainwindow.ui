@@ -172,18 +172,56 @@
        <string>TextLabel</string>
       </property>
      </widget>
-     <widget class="QLabel" name="labelTotProt">
+     <widget class="QWidget" name="verticalLayoutWidget_2">
       <property name="geometry">
        <rect>
-        <x>360</x>
-        <y>50</y>
-        <width>341</width>
-        <height>16</height>
+        <x>320</x>
+        <y>400</y>
+        <width>221</width>
+        <height>101</height>
        </rect>
       </property>
-      <property name="text">
-       <string>TextLabel</string>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QLabel" name="labelTotProt">
+         <property name="text">
+          <string>TextLabel</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelTotLip">
+         <property name="text">
+          <string>TextLabel</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelTotGluc">
+         <property name="text">
+          <string>TextLabel</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelTotFib">
+         <property name="text">
+          <string>TextLabel</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_3">
+      <property name="geometry">
+       <rect>
+        <x>320</x>
+        <y>50</y>
+        <width>441</width>
+        <height>331</height>
+       </rect>
       </property>
+      <layout class="QVBoxLayout" name="layoutBarChart"/>
      </widget>
     </widget>
     <widget class="QWidget" name="tabPhysio">

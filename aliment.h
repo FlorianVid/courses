@@ -5,6 +5,9 @@
 
 struct Nutriments {
     double protein;
+    double lipid;
+    double glucid;
+    double fiber;
 };
 
 class Aliment
@@ -16,7 +19,7 @@ public:
     void setId(int id);
     QString getName() const;
     void setName(const QString& name);
-    void setNut(double prot);
+    void setNut(double prot, double lip, double glucideDouble, double fibDouble);
     Nutriments getNut() const;
 
 

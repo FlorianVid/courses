@@ -28,6 +28,7 @@ DatabaseManager::DatabaseManager(const QString& path, const QString& pathSource)
 DatabaseManager::~DatabaseManager()
 {
     m_database->close();
+    m_databaseSource->close();
     delete  m_database;
     delete  m_databaseSource;
 }

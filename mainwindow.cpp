@@ -432,7 +432,23 @@ void MainWindow::modifyItemFunction()
 void MainWindow::validateCourses()
 {
     std::vector<Aliment> listeAliments;
+    double totProtFruit = 0;
+    double totLipFruit = 0;
+    double totGlucFruit = 0;
+    double totFibFruit = 0;
+    double totProtLeg = 0;
+    double totLipLeg = 0;
+    double totGlucLeg = 0;
+    double totFibLeg = 0;
+    double totProtViande = 0;
+    double totLipViande = 0;
+    double totGlucViande = 0;
+    double totFibViande = 0;
     double totProt = 0;
+    double totLip = 0;
+    double totGluc = 0;
+    double totFib = 0;
+    const int nbNut = 4;
     if (m_listeCoursesNombre.size() > 0) {
         ui->tabMain->setTabEnabled(1,true);
         ui->tabMain->setTabEnabled(2,true);
@@ -457,17 +473,78 @@ void MainWindow::validateCourses()
             dbMng.m_alimentDao.addAlimentInCourses(alim.second,crs.getId());
             listeAliments.push_back(alim.second);
 
-            totProt += alim.second.getNut().protein;
-
+            if(alim.second.getCategory() == "fruit") {
+                totProtFruit += alim.second.getNut().protein;
+                totLipFruit += alim.second.getNut().lipid;
+                totGlucFruit += alim.second.getNut().glucid;
+                totFibFruit += alim.second.getNut().fiber;
+            } else if (alim.second.getCategory() == "legume") {
+                totProtLeg += alim.second.getNut().protein;
+                totLipLeg += alim.second.getNut().lipid;
+                totGlucLeg += alim.second.getNut().glucid;
+                totFibLeg += alim.second.getNut().fiber;
+            } else {
+                totProtViande += alim.second.getNut().protein;
+                totLipViande += alim.second.getNut().lipid;
+                totGlucViande += alim.second.getNut().glucid;
+                totFibViande += alim.second.getNut().fiber;
+            }
         }
         ui->labelNameCourses->setText(text);
+        totProt = totProtFruit + totProtLeg + totProtViande;
+        totLip = totLipFruit + totLipLeg + totLipViande;
+        totGluc = totGlucFruit + totGlucLeg + totLipViande;
+        totFib = totFibFruit + totFibLeg + totFibViande;
         ui->labelTotProt->setText(QString::number(totProt) + tr(" g de protéines"));
+        ui->labelTotLip->setText(QString::number(totLip) + tr(" g de lipides"));
+        ui->labelTotGluc->setText(QString::number(totGluc) + tr(" g de glucides"));
+        ui->labelTotFib->setText(QString::number(totFib) + tr(" g de fibres"));
 
     } else {
         QMessageBox popUp = QMessageBox(QMessageBox::Information,this->windowTitle(),
                                         "Ajoutez des aliments à la liste de courses.");
         popUp.exec();
     }
+
+
+    QBarSet *setFruit = new QBarSet("Fruits");
+    *setFruit << totProtFruit << totLipFruit << totGlucFruit << totFibFruit;
+    QBarSet *setLeg = new QBarSet("Legumes");
+    *setLeg << totProtLeg << totLipLeg << totGlucLeg << totFibLeg;
+    QBarSet *setViande = new QBarSet("Viandes");
+    *setViande << totProtViande << totLipViande << totGlucViande << totFibViande;
+
+    QBarSeries *series = new QBarSeries();
+    series->append(setFruit);
+    series->append(setLeg);
+    series->append(setViande);
+    QChart *chart = new QChart();
+    chart->addSeries(series);
+    chart->setTitle("Bilan nutritionnel des courses");
+    chart->setAnimationOptions(QChart::SeriesAnimations);
+
+    QStringList categories;
+    categories << "Protéines" << "Lipides" << "Glucides" << "Fibres";
+    QBarCategoryAxis *axisX = new QBarCategoryAxis();
+    axisX->append(categories);
+    chart->addAxis(axisX, Qt::AlignBottom);
+    series->attachAxis(axisX);
+
+    QValueAxis *axisY = new QValueAxis();
+    double nut[nbNut] = {totProt, totLip, totGluc, totFib};
+    axisY->setRange(0,*std::max_element(nut,nut + nbNut));
+    axisY->setTitleText("Masse (g)");
+    chart->addAxis(axisY, Qt::AlignLeft);
+    series->attachAxis(axisY);
+
+    chart->legend()->setVisible(true);
+    chart->legend()->setAlignment(Qt::AlignBottom);
+
+    QChartView *chartView = new QChartView(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+
+    ui->layoutBarChart->addWidget(chartView);
+    ui->tabMain->setCurrentIndex(1);
 }
 
 void MainWindow::unvalidateCourses() const
@@ -490,7 +567,7 @@ void MainWindow:: updateListeCourses(QTableWidget* tab) const
         std::string fullWord;
         std::string word;
         record >> word;
-        if( (j.second.getNbUnit() <= 1 && j.second.getMass() <= 1) || word.back() == 's' || word.back() == 'z')
+        if( (j.second.getNbUnit() <= 1 && boolItem) || (j.second.getMass() <= 1 && !boolItem) || word.back() == 's' || word.back() == 'z')
             fullWord = word;
         else {
             fullWord = word + "s";

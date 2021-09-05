@@ -34,6 +34,7 @@ void AlimentDao::addAlimentInCourses(Aliment &aliment, int coursesId) const
     aliment.setCoursesId(coursesId);
 
     //find in source database the associated nutriments
+    //proteines
     QSqlQuery querySource(m_databaseSource);
     querySource.prepare("SELECT [Proteines (g)] FROM valeursNut WHERE Nom LIKE ?");
     querySource.bindValue(0, aliment.getName() + "%");
@@ -47,7 +48,46 @@ void AlimentDao::addAlimentInCourses(Aliment &aliment, int coursesId) const
     protStr.replace(",",".");
     double protDouble = protStr.toDouble();
 
-    aliment.setNut(protDouble);
+    //lipides
+    querySource.prepare("SELECT [Lipides, totaux (g)] FROM valeursNut WHERE Nom LIKE ?");
+    querySource.bindValue(0, aliment.getName() + "%");
+
+    if(!querySource.exec())
+      qWarning() << "ERROR: " << querySource.lastError().text();
+
+    querySource.first();//forced otherwise the rest does not work
+
+    QString lipStr = querySource.value(0).toString();
+    lipStr.replace(",",".");
+    double lipDouble = lipStr.toDouble();
+
+    //glucides
+    querySource.prepare("SELECT [Glucides, disponibles (g)] FROM valeursNut WHERE Nom LIKE ?");
+    querySource.bindValue(0, aliment.getName() + "%");
+
+    if(!querySource.exec())
+      qWarning() << "ERROR: " << querySource.lastError().text();
+
+    querySource.first();//forced otherwise the rest does not work
+
+    QString glucideStr = querySource.value(0).toString();
+    glucideStr.replace(",",".");
+    double glucideDouble = glucideStr.toDouble();
+
+    //Fibres
+    querySource.prepare("SELECT [Fibres alimentaires (g)] FROM valeursNut WHERE Nom LIKE ?");
+    querySource.bindValue(0, aliment.getName() + "%");
+
+    if(!querySource.exec())
+      qWarning() << "ERROR: " << querySource.lastError().text();
+
+    querySource.first();//forced otherwise the rest does not work
+
+    QString fibStr = querySource.value(0).toString();
+    fibStr.replace(",",".");
+    double fibDouble = fibStr.toDouble();
+
+    aliment.setNut(protDouble, lipDouble, glucideDouble, fibDouble);
 
 }
 
