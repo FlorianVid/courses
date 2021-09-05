@@ -261,7 +261,7 @@ void MainWindow::ajoutAliment(double quantity)
     }
 
     if(m_unitOrMass) { //need to convert quantity to mass
-        m_listeCoursesNombre[temp2] = Aliment(foodName, quantity*correspButton->getMassPerUnit(), correspButton->getCategory()) ;// + m_listeCoursesNombre[temp2].getQuantity()
+        m_listeCoursesNombre[temp2] = Aliment(foodName, quantity*correspButton->getMassPerUnit(), correspButton->getCategory(),quantity) ;// + m_listeCoursesNombre[temp2].getQuantity()
     } else {
         m_listeCoursesNombre[temp2] = Aliment(foodName, quantity, correspButton->getCategory()) ;// + m_listeCoursesNombre[temp2].getQuantity()
     }
@@ -325,15 +325,15 @@ void MainWindow::saveToFile()
             QString listItem = std::get<0>(temp2);
 
             if (!std::get<1>(temp2)) {
-                if(j.second.getQuantity() > 1)
-                    out << (QString::number(j.second.getQuantity()) + " kg " + listItem + "s\n");
+                if(j.second.getMass() > 1)
+                    out << (QString::number(j.second.getMass()) + " kg " + listItem + "s\n");
                 else
-                    out << (QString::number(j.second.getQuantity()) + " kg " + listItem + "\n");
+                    out << (QString::number(j.second.getMass()) + " kg " + listItem + "\n");
             } else {
-            if(j.second.getQuantity() > 1)
-                out << (QString::number(j.second.getQuantity()) + " " + listItem + "s\n");
+            if(j.second.getNbUnit() > 1)
+                out << (QString::number(j.second.getNbUnit()) + " " + listItem + "s\n");
             else
-                out << (QString::number(j.second.getQuantity()) + " " + listItem + "\n");
+                out << (QString::number(j.second.getNbUnit()) + " " + listItem + "\n");
             }
         }
     }
@@ -385,7 +385,13 @@ std::tuple<QString, bool, double> MainWindow::findItemToModify() const
             if((lastWord == std::get<0>(it)) ||
                (lastWord==(std::get<0>(it) + QString("s")))||
                (lastWord == (std::get<0>(it) + QString("z")))) {
-                double nbFood = m_listeCoursesNombre.at(it).getQuantity();
+                double nbFood = 0;
+                if(std::get<1>(it)) {
+                    nbFood = m_listeCoursesNombre.at(it).getNbUnit();
+                } else {
+                    nbFood = m_listeCoursesNombre.at(it).getMass();
+                }
+
                 return (std::make_tuple(std::get<0>(it), std::get<1>(it), nbFood));
             }
         }
@@ -474,7 +480,7 @@ void MainWindow:: updateListeCourses(QTableWidget* tab) const
 {
     int row = 0;
     for (auto const &j : m_listeCoursesNombre) {
-        if (j.second.getQuantity() < 0.001)
+        if (j.second.getMass() < 0.001)
             continue;
         QTableWidgetItem *itemList;
         std::tuple<QString, bool> temp2 = j.first;
@@ -484,7 +490,7 @@ void MainWindow:: updateListeCourses(QTableWidget* tab) const
         std::string fullWord;
         std::string word;
         record >> word;
-        if(j.second.getQuantity() <= 1 || word.back() == 's' || word.back() == 'z')
+        if( (j.second.getNbUnit() <= 1 && j.second.getMass() <= 1) || word.back() == 's' || word.back() == 'z')
             fullWord = word;
         else {
             fullWord = word + "s";
@@ -493,9 +499,9 @@ void MainWindow:: updateListeCourses(QTableWidget* tab) const
             fullWord = fullWord + " " + word;
         }
         if (boolItem)
-            itemList = new QTableWidgetItem(QString::number(j.second.getQuantity()) + " " + QString::fromStdString(fullWord));
+            itemList = new QTableWidgetItem(QString::number(j.second.getNbUnit()) + " " + QString::fromStdString(fullWord));
         else
-            itemList = new QTableWidgetItem(QString::number(j.second.getQuantity()) + " kg " + QString::fromStdString(fullWord));
+            itemList = new QTableWidgetItem(QString::number(j.second.getMass()) + " kg " + QString::fromStdString(fullWord));
 
         tab->insertRow(row);
         tab->setItem(row,0,itemList);

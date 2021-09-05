@@ -1,9 +1,10 @@
 #include "aliment.h"
 
-Aliment::Aliment(const QString& name, double quantity, const QString& category) :
+Aliment::Aliment(const QString& name, double mass, const QString& category, double nbUnit) :
     m_name(name),
-    m_quantity(quantity),
-    m_category(category)
+    m_mass(mass),
+    m_category(category),
+    m_nbUnit(nbUnit)
 {
 }
 
@@ -33,8 +34,12 @@ QString Aliment::getCategory() const {
 }
 
 
-double Aliment::getQuantity() const {
-    return m_quantity;
+double Aliment::getMass() const {
+    return m_mass;
+}
+
+double Aliment::getNbUnit() const {
+    return m_nbUnit;
 }
 
 void Aliment::setName(const QString& name) {

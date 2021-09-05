@@ -10,7 +10,7 @@ struct Nutriments {
 class Aliment
 {
 public:
-    Aliment(const QString& name = "", double quantity = 0, const QString& category = "");
+    Aliment(const QString& name = "", double mass = 0, const QString& category = "", double nbUnit = 0);
 
     int getId() const;
     void setId(int id);
@@ -23,15 +23,17 @@ public:
     int getCoursesId() const;
     void setCoursesId(int idC);
     QString getCategory() const;
-    double getQuantity() const;
+    double getMass() const;
+    double getNbUnit() const;
 
 private:
     int m_id;
     QString m_name;
     int m_coursesId;
     Nutriments m_nut;
-    double m_quantity; //in kg
+    double m_mass; //in kg
     QString m_category; //legume, fruit or viande
+    double m_nbUnit;
 };
 
 #endif // ALIMENT_H
