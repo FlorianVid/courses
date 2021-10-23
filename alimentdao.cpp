@@ -10,7 +10,7 @@
 #include "aliment.h"
 
 AlimentDao::AlimentDao(QSqlDatabase& database, QSqlDatabase& databaseSource) :
-    m_database(database),
+    m_database(database),//db in g per 100g
     m_databaseSource(databaseSource)
 {
 }
@@ -87,7 +87,8 @@ void AlimentDao::addAlimentInCourses(Aliment &aliment, int coursesId) const
     fibStr.replace(",",".");
     double fibDouble = fibStr.toDouble();
 
-    aliment.setNut(protDouble, lipDouble, glucideDouble, fibDouble);
+    aliment.setNut(protDouble*aliment.getMass()*1000/100, lipDouble*aliment.getMass()*1000/100,
+                   glucideDouble*aliment.getMass()*1000/100, fibDouble*aliment.getMass()*1000/100);
 
 }
 

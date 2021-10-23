@@ -266,7 +266,13 @@ void MainWindow::getQuantity(std::string chosenFood, double initValue)
     if(indCurTab == 0)
         unvalidateCourses();
 
-    emit popUp->doubleValueSelected(quantity);
+    if(ok){
+        emit popUp->doubleValueSelected(quantity);
+    }
+    else{
+        qDebug() << "test";
+    }
+
 
 }
 
@@ -297,10 +303,6 @@ void MainWindow::ajoutAliment(double quantity)
         m_listeCoursesNombre[temp2] = Aliment(foodName, quantity*correspButton->getMassPerUnit(), correspButton->getCategory(),quantity) ;// + m_listeCoursesNombre[temp2].getQuantity()
     } else {
         m_listeCoursesNombre[temp2] = Aliment(foodName, quantity, correspButton->getCategory()) ;// + m_listeCoursesNombre[temp2].getQuantity()
-    }
-
-    for(auto const& a : m_listeCoursesNombre) {
-        qDebug() << a.second.getCategory();
     }
 
     updateListeCourses(ui->tableListeCourses);
@@ -391,25 +393,42 @@ void MainWindow::removeItemFunction(bool quietRemove) //quietmove == true when m
 
     if (tabList->currentIndex().isValid()) {
         int curRow = tabList->currentRow();
+
         QTableWidgetItem *curItem = tabList->currentItem();
         QStringList listWords = curItem->text().split(" ");
-        QString lastWord = listWords.last();
+        listWords.pop_front();
+        QString ingredientName = listWords.join(" ");
 
-        std::vector<std::tuple<QString, bool>> listKeys;
-        for(auto const & it : m_listeCoursesNombre) {
-            listKeys.push_back(it.first);
-        }
-        for (auto const & it : listKeys) {
-            if((lastWord == std::get<0>(it)) ||
-               (lastWord==(std::get<0>(it) + QString("s")))||
-               (lastWord == (std::get<0>(it) + QString("z")))) {
+        for (auto const & it : m_listeCoursesNombre) {
+
+            std::tuple<QString, bool> key = it.first;
+
+            QString nameItem = std::get<0>(key);
+            bool boolItem = std::get<1>(key);
+            std::istringstream record(nameItem.toStdString());
+            std::string fullWord;
+            std::string word;
+            record >> word;
+            if( (it.second.getNbUnit() <= 1 && boolItem) ||
+                    (it.second.getMass() <= 1 && !boolItem) ||
+                    word.back() == 's' ||
+                    word.back() == 'z')
+                fullWord = word;
+            else {
+                fullWord = word + "s";
+            }
+            while(record >> word) {
+                fullWord = fullWord + " " + word;
+            }
+
+            if(ingredientName == QString::fromStdString(fullWord)) {
                 if (quietRemove == false) {
                     QMessageBox popUp = QMessageBox(QMessageBox::Information,this->windowTitle(),
-                                                    "Ingrédient : " + lastWord + " enlevé de la liste");
+                                                    "Ingrédient : " + ingredientName + " enlevé de la liste");
                     //popUp.setFont(m_basicFont);
                     popUp.exec();
                 }
-                m_listeCoursesNombre.erase(it);
+                m_listeCoursesNombre.erase(key);
                 break;
             }
         }
@@ -419,10 +438,12 @@ void MainWindow::removeItemFunction(bool quietRemove) //quietmove == true when m
     if(indCurTab == 0){
         unvalidateCourses();
     } else {
-        if(m_listeCoursesNombre.size() == 0) {
-            unvalidateCourses();
-        } else {
-            validateCourses(false);
+        if(quietRemove == false) {
+            if(m_listeCoursesNombre.size() == 0) {
+                unvalidateCourses();
+            } else {
+                validateCourses(false);
+            }
         }
     }
 }
@@ -442,24 +463,40 @@ std::tuple<QString, bool, double> MainWindow::findItemToModify() const
     if (tabList->currentIndex().isValid()) {
         QTableWidgetItem *curItem = tabList->currentItem();
         QStringList listWords = curItem->text().split(" ");
-        QString lastWord = listWords.last();
+        listWords.pop_front();
+        QString ingredientName = listWords.join(" ");
 
-        std::vector<std::tuple<QString, bool>> listKeys;
-        for(auto const & it : m_listeCoursesNombre) {
-            listKeys.push_back(it.first);
-        }
-        for (auto const & it : listKeys) {
-            if((lastWord == std::get<0>(it)) ||
-               (lastWord==(std::get<0>(it) + QString("s")))||
-               (lastWord == (std::get<0>(it) + QString("z")))) {
+        for (auto const & it : m_listeCoursesNombre) {
+
+            std::tuple<QString, bool> key = it.first;
+
+            QString nameItem = std::get<0>(key);
+            bool boolItem = std::get<1>(key);
+            std::istringstream record(nameItem.toStdString());
+            std::string fullWord;
+            std::string word;
+            record >> word;
+            if( (it.second.getNbUnit() <= 1 && boolItem) ||
+                    (it.second.getMass() <= 1 && !boolItem) ||
+                    word.back() == 's' ||
+                    word.back() == 'z')
+                fullWord = word;
+            else {
+                fullWord = word + "s";
+            }
+            while(record >> word) {
+                fullWord = fullWord + " " + word;
+            }
+
+            if(ingredientName == QString::fromStdString(fullWord)) {
                 double nbFood = 0;
-                if(std::get<1>(it)) {
-                    nbFood = m_listeCoursesNombre.at(it).getNbUnit();
+                if(boolItem) {
+                    nbFood = it.second.getNbUnit();
                 } else {
-                    nbFood = m_listeCoursesNombre.at(it).getMass();
+                    nbFood = it.second.getMass();
                 }
 
-                return (std::make_tuple(std::get<0>(it), std::get<1>(it), nbFood));
+                return (std::make_tuple(nameItem, boolItem, nbFood));
             }
         }
     }
@@ -501,17 +538,22 @@ void MainWindow::modifyItemFunction()
         double initValue = std::get<2>(data2modify);
 
         getQuantity(std::get<0>(data2modify).toStdString(), initValue);
-    }
 
-    if(indCurTab == 0){
-        unvalidateCourses();
-    } else {
-        if(m_listeCoursesNombre.size() == 0) {
+        if(indCurTab == 0){
             unvalidateCourses();
         } else {
-            validateCourses(false);
+            bool mod2zero = false; //flag to indicate if only one ingredient left and set to 0 => unvalidate nutriment tab
+            if(m_listeCoursesNombre.size() == 1) {
+                mod2zero = m_listeCoursesNombre.begin()->second.getMass() == 0;
+            }
+            if(m_listeCoursesNombre.size() == 0 || mod2zero) {
+                unvalidateCourses();
+            } else {
+                validateCourses(false);
+            }
         }
     }
+    switchMassUnit(true);
 }
 
 void MainWindow::validateCourses(bool nouvellesCourses)
@@ -692,3 +734,4 @@ bool is_vowel (wchar_t c)
 
     return (position != end);
 }
+
