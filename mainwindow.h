@@ -58,7 +58,7 @@ class MainWindow : public QMainWindow
 
 private:
     bool m_unitOrMass;//if true => unit otherwise mass in kg
-    bool m_unitOrMassTemp;//if true => unit otherwise mass in kg
+    bool m_unitOrMassTemp;//if true => unit otherwise mass in kg used when an ingredient is added with different unit/mass
     std::map<std::tuple<QString, bool>, Aliment> m_listeCoursesNombre;//name, unit or mass?, Aliment
     Ui::MainWindow *ui;
     Courses m_crs;

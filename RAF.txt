@@ -1,0 +1,2 @@
+Ajouter cohérence boutton unité/kg et radio buttons
+Quand on appuie cancel avant de donner un boutton prévoir une sorte de sauvegarde pour ne pas perdre l'ingrédient à modifier

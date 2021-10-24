@@ -270,10 +270,10 @@ void MainWindow::getQuantity(std::string chosenFood, double initValue)
         emit popUp->doubleValueSelected(quantity);
     }
     else{
-        qDebug() << "test";
+        m_unitOrMass = m_unitOrMassTemp;
+        quantity = initValue;
+        emit popUp->doubleValueSelected(quantity);
     }
-
-
 }
 
 void MainWindow::ajoutAliment(double quantity)
@@ -303,6 +303,10 @@ void MainWindow::ajoutAliment(double quantity)
         m_listeCoursesNombre[temp2] = Aliment(foodName, quantity*correspButton->getMassPerUnit(), correspButton->getCategory(),quantity) ;// + m_listeCoursesNombre[temp2].getQuantity()
     } else {
         m_listeCoursesNombre[temp2] = Aliment(foodName, quantity, correspButton->getCategory()) ;// + m_listeCoursesNombre[temp2].getQuantity()
+    }
+
+    for (auto const & it:m_listeCoursesNombre){
+       qDebug() << "ajoutAliment" << std::get<0>(it.first) << std::get<1>(it.first);
     }
 
     updateListeCourses(ui->tableListeCourses);
@@ -397,6 +401,10 @@ void MainWindow::removeItemFunction(bool quietRemove) //quietmove == true when m
         QTableWidgetItem *curItem = tabList->currentItem();
         QStringList listWords = curItem->text().split(" ");
         listWords.pop_front();
+
+        if (listWords.at(0) == "kg")
+            listWords.pop_front();
+
         QString ingredientName = listWords.join(" ");
 
         for (auto const & it : m_listeCoursesNombre) {
@@ -464,6 +472,10 @@ std::tuple<QString, bool, double> MainWindow::findItemToModify() const
         QTableWidgetItem *curItem = tabList->currentItem();
         QStringList listWords = curItem->text().split(" ");
         listWords.pop_front();
+
+        if (listWords.at(0) == "kg")
+            listWords.pop_front();
+
         QString ingredientName = listWords.join(" ");
 
         for (auto const & it : m_listeCoursesNombre) {
@@ -498,6 +510,7 @@ std::tuple<QString, bool, double> MainWindow::findItemToModify() const
 
                 return (std::make_tuple(nameItem, boolItem, nbFood));
             }
+            qDebug() << "findItemToModify()" << nameItem << boolItem;
         }
     }
     std::cerr << "Element to modify not found" << std::endl;
@@ -537,6 +550,8 @@ void MainWindow::modifyItemFunction()
 
         double initValue = std::get<2>(data2modify);
 
+        qDebug() << "modifyItemFunction()" << std::get<0>(data2modify) << std::get<1>(data2modify) << std::get<2>(data2modify);
+
         getQuantity(std::get<0>(data2modify).toStdString(), initValue);
 
         if(indCurTab == 0){
@@ -553,7 +568,6 @@ void MainWindow::modifyItemFunction()
             }
         }
     }
-    switchMassUnit(true);
 }
 
 void MainWindow::validateCourses(bool nouvellesCourses)
