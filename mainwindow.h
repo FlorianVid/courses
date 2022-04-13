@@ -75,7 +75,7 @@ private slots:
     void readFileAddVegetablesButtons();
     void readFileAddFruitsButtons();
     void readFileAddMeatButtons();
-    void getQuantity(std::string chosenFood = "", double initValue = 0);
+    int getQuantity(std::string chosenFood = "", double initValue = 0);
     void ajoutAliment(double quantity);
     void switchMassUnit(bool checked);
     void razListe();

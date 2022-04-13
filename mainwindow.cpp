@@ -202,10 +202,11 @@ void MainWindow::readFileAddMeatButtons()
     dataFile.close();
 
     int nbViande = listeViande.size();
-    QPushButton* buttonViande[nbViande];
+    QPushButtonAliment* buttonViande[nbViande];
     for (int i = 0 ; i < nbViande ; i++) {
         buttonViande[i] = new QPushButtonAliment(listeViande.at(i), ui->tabViandes,"viande",listeMassPerUnit.at(i));
         buttonViande[i]->setObjectName(listeViande.at(i));
+        qDebug() << "mass" << buttonViande[i]->getMassPerUnit();
     }
 
     QGridLayout *layoutLegumes = new QGridLayout(ui->tabViandes);//3 items per row
@@ -218,9 +219,16 @@ void MainWindow::readFileAddMeatButtons()
     }
 }
 
-void MainWindow::getQuantity(std::string chosenFood, double initValue)
+int MainWindow::getQuantity(std::string chosenFood, double initValue)
 {
-    QPushButton * pushedButton = (QPushButton *) sender();
+    QPushButtonAliment * pushedButton = (QPushButtonAliment *) sender();
+
+    if(std::isnan(pushedButton->getMassPerUnit()) & m_unitOrMass) {
+        QMessageBox::warning(this, tr("Raggamuffin"),
+                                   tr("On ne peut pas rentrer d'unité pour cet aliment, uniquement une masse."),
+                                   QMessageBox::Discard);
+        return -1;
+    }
 
     const char* stringUnitMass;
     if (m_unitOrMass)
@@ -274,10 +282,12 @@ void MainWindow::getQuantity(std::string chosenFood, double initValue)
         quantity = initValue;
         emit popUp->doubleValueSelected(quantity);
     }
+    return 0;
 }
 
 void MainWindow::ajoutAliment(double quantity)
 {
+
     QInputDialog * popUp = (QInputDialog *) sender();
 
     QString foodName = popUp->textValue();
@@ -305,9 +315,9 @@ void MainWindow::ajoutAliment(double quantity)
         m_listeCoursesNombre[temp2] = Aliment(foodName, quantity, correspButton->getCategory()) ;// + m_listeCoursesNombre[temp2].getQuantity()
     }
 
-    for (auto const & it:m_listeCoursesNombre){
-       qDebug() << "ajoutAliment" << std::get<0>(it.first) << std::get<1>(it.first);
-    }
+//    for (auto const & it:m_listeCoursesNombre){
+//       qDebug() << "ajoutAliment" << std::get<0>(it.first) << std::get<1>(it.first);
+//    }
 
     updateListeCourses(ui->tableListeCourses);
     m_unitOrMass = m_unitOrMassTemp;
@@ -510,7 +520,7 @@ std::tuple<QString, bool, double> MainWindow::findItemToModify() const
 
                 return (std::make_tuple(nameItem, boolItem, nbFood));
             }
-            qDebug() << "findItemToModify()" << nameItem << boolItem;
+//            qDebug() << "findItemToModify()" << nameItem << boolItem;
         }
     }
     std::cerr << "Element to modify not found" << std::endl;
@@ -550,7 +560,7 @@ void MainWindow::modifyItemFunction()
 
         double initValue = std::get<2>(data2modify);
 
-        qDebug() << "modifyItemFunction()" << std::get<0>(data2modify) << std::get<1>(data2modify) << std::get<2>(data2modify);
+//        qDebug() << "modifyItemFunction()" << std::get<0>(data2modify) << std::get<1>(data2modify) << std::get<2>(data2modify);
 
         getQuantity(std::get<0>(data2modify).toStdString(), initValue);
 
@@ -624,11 +634,13 @@ void MainWindow::validateCourses(bool nouvellesCourses)
                 totLipLeg += alim.second.getNut().lipid;
                 totGlucLeg += alim.second.getNut().glucid;
                 totFibLeg += alim.second.getNut().fiber;
+
             } else {
                 totProtViande += alim.second.getNut().protein;
                 totLipViande += alim.second.getNut().lipid;
                 totGlucViande += alim.second.getNut().glucid;
                 totFibViande += alim.second.getNut().fiber;
+
             }
         }
         ui->labelNameCourses->setText(m_crs.getName());
